@@ -1,3 +1,4 @@
+import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.util.*;
 
@@ -129,14 +130,31 @@ public class Generator {
 		//Relative Neighbourhood Graph looks good - http://en.wikipedia.org/wiki/Relative_neighborhood_graph
 		//Also see Gabriel Graph http://en.wikipedia.org/wiki/Gabriel_graph and Nearest Neighbour Graph http://en.wikipedia.org/wiki/Nearest_neighbor_graph
 		//Then, stick the corridor tiles in the appropriate places.
+		
+		
+		//For now, draw a line from each cell to its nearest neighbour.
+		window.getGraphics().setColor(Color.GREEN);
+		for (Cell cell : cells) {
+			//TODO - add additional check. Only red cells should be considered.
+			double closestCellDist = 1000;
+			Cell closestCell = null;
+			for (Cell otherCell : cells) {
+				if (otherCell != cell && cell.getDistanceTo(otherCell)<closestCellDist) {
+					closestCell = otherCell;
+					closestCellDist = cell.getDistanceTo(otherCell);
+				}
+			}
+			window.getGraphics().drawLine(500+(cell.getCentre().getX()*5), 500+(cell.getCentre().getY()*5),
+					500+(closestCell.getCentre().getX()*5), 500+(closestCell.getCentre().getY()*5));
+		}
 	}
 	
 	public static void printGraphicalOutput(int minX, int maxX, int minY, int maxY) {
 		boolean[][] cellsPrint = new boolean[maxX-minX][maxY-minY];
 		for (Cell cell : cells) {
 			Coord2D cor = cell.getCorner();
-			for (int y=cor.getY(); y<cor.getY()+cell.getY_size(); y++) {
-				for (int x=cor.getX(); x<cor.getX()+cell.getX_size(); x++) {
+			for (int y=cor.getY(); y<cor.getY()+cell.getH(); y++) {
+				for (int x=cor.getX(); x<cor.getX()+cell.getW(); x++) {
 					cellsPrint[x-minX][y-minY] = true;
 				}
 			}

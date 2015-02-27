@@ -7,14 +7,14 @@ public class Cell implements Comparable<Cell> {
 
 	private Coord2D corner;
 	private Coord2D centre;
-	private int x_size;
-	private int y_size;
+	private int width;
+	private int height;
 	
 	public Cell(Coord2D corner, int x, int y) {
 		this.corner = corner;
-		x_size = x;
-		y_size = y;
-		centre = new Coord2D(corner.getX()+(int) Math.floor(x_size/2), corner.getY()+(int) Math.floor(y_size/2));
+		width = x;
+		height = y;
+		centre = new Coord2D(corner.getX()+(int) Math.floor(width/2), corner.getY()+(int) Math.floor(height/2));
 	}
 	
 	public Coord2D getCentre() {
@@ -33,17 +33,17 @@ public class Cell implements Comparable<Cell> {
 		return corner.getY();
 	};
 	
-	public int getX_size() {
-		return x_size;
+	public int getW() {
+		return width;
 	}
 
-	public int getY_size() {
-		return y_size;
+	public int getH() {
+		return height;
 	}
 
 	public void setCorner(Coord2D corner) {
 		this.corner = corner;
-		centre = new Coord2D(corner.getX()+(int) Math.floor(x_size/2), corner.getY()+(int) Math.floor(y_size/2));
+		centre = new Coord2D(corner.getX()+(int) Math.floor(width/2), corner.getY()+(int) Math.floor(height/2));
 	}
 
 	public void setCentre(Coord2D centre) {
@@ -51,15 +51,15 @@ public class Cell implements Comparable<Cell> {
 	}
 	
 	public void setX_size(int x_size) {
-		this.x_size = x_size;
+		this.width = x_size;
 	}
 
 	public void setY_size(int y_size) {
-		this.y_size = y_size;
+		this.height = y_size;
 	}
 	
 	public String toString() {
-		String s = String.format("Cell of size %3d, %3d. Corner %3d, %3d.", x_size, y_size, corner.getX(), corner.getY());
+		String s = String.format("Cell of size %3d, %3d. Corner %3d, %3d.", width, height, corner.getX(), corner.getY());
 		return s;
 	}
 
@@ -69,7 +69,7 @@ public class Cell implements Comparable<Cell> {
 		} else if (corner.getY()!=c.corner.getY()) {
 			return (int) (corner.getY()-c.corner.getY());
 		} else {
-			return (x_size*y_size)-(c.x_size*c.y_size);
+			return (width*height)-(c.width*c.height);
 		}
 	}
 	
@@ -85,16 +85,16 @@ public class Cell implements Comparable<Cell> {
 
 		//If this is further right than the other Cell, check that one's size.
 		if (x1>x2) {
-			horz = x2+c.x_size >= x1;
+			horz = x2+c.width >= x1;
 		} else {
-			horz = x1+x_size >= x2;
+			horz = x1+width >= x2;
 		}
 		
 		//If this is below the other cell, check that one's size.
 		if (y1>y2) {
-			vert = y2+c.y_size >= y1;
+			vert = y2+c.height >= y1;
 		} else {
-			vert = y1+y_size >= y2;
+			vert = y1+height >= y2;
 		}
 		
 		//Return true iff horz and vert collisions.
@@ -118,6 +118,12 @@ public class Cell implements Comparable<Cell> {
 	}
 	
 	public Cell clone() {
-		return new Cell(new Coord2D(getX(), getY()), x_size, y_size); 
+		return new Cell(new Coord2D(getX(), getY()), width, height); 
+	}
+	
+	public double getDistanceTo(Cell cell) {
+		int xDist = centre.getX()-cell.centre.getX();
+		int yDist = centre.getY()-cell.centre.getY();
+		return Math.sqrt((xDist*xDist)+(yDist*yDist));
 	}
 }
