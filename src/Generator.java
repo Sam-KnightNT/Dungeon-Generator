@@ -115,7 +115,6 @@ public class Generator {
 		for (Cell cell : cells) {
 			window.clearCell(cell);
 			cell.setCorner(Coord2D.subtract(cell.getCorner(), averagePosition));
-			System.out.println(cell.toString());
 		}
 		
 		//Redraw them on-screen
@@ -144,9 +143,32 @@ public class Generator {
 					closestCellDist = cell.getDistanceTo(otherCell);
 				}
 			}
-			window.getGraphics().drawLine(500+(cell.getCentre().getX()*5), 500+(cell.getCentre().getY()*5),
-					500+(closestCell.getCentre().getX()*5), 500+(closestCell.getCentre().getY()*5));
+			//window.getGraphics().drawLine(500+(cell.getCentre().getX()*5), 500+(cell.getCentre().getY()*5),
+			//		500+(closestCell.getCentre().getX()*5), 500+(closestCell.getCentre().getY()*5));
 		}
+		
+		//Create a series of lines between the points, that cover each and every point. Go recursively - check each point.
+		//If it doesn't have 2 points from it, find the closest point to it that doesn't have a line to it. Draw a line to that point, and pause for a bit.
+		System.out.println("Cells separated: Generating connections.");
+		boolean finished = false;
+		while (!finished) {
+			//return true if all points have been iterated through and none without triangles are found.
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			finished = triangulate(); 
+		}
+		System.out.println("Done!");
+		
+		//Now check for disconnected loops - generate a list, A, of all cells. While this list is populated, pick the first cell on the list.
+		//Generate a list of connected cells, B. Go through this in turn - draw a green line when a connection has been checked.
+		//If the cell on the end is still in list A, delete it from A and put its connected cells on the end of list B. Then take the next from list B.
+		//Once list B is exhausted, check list A. If it is empty, we are done. If not, check which is larger - A or ~A (i.e. deleted cells).
+		//Iterate through the smaller of A and ~A, finding the cell which is the closest to a cell in ~A or A. Draw a line between these 2 cells at the end.
+		//Regenerate list A and repeat until list A remains empty on a single go-through.
 	}
 	
 	public static void printGraphicalOutput(int minX, int maxX, int minY, int maxY) {
@@ -178,5 +200,29 @@ public class Generator {
 			r = (random.nextGaussian()*VARIANCE)+MIN_SIZE;
 		}
 		return (int) Math.round(r);
+	}
+	
+	private static boolean triangulate() {
+		Collections.shuffle(cells);
+		for (Cell cell : cells) {
+			if (cell.getConnectionCount() < 2) {
+				//Create a new Connection to the closest cell that doesn't already have one.
+				double closestCellDist = 1000;
+				Cell closestCell = null;
+				for (Cell otherCell : cells) {
+					if (otherCell != cell && cell.getDistanceTo(otherCell)<closestCellDist && !cell.getConnections().contains(otherCell)) {
+						closestCell = otherCell;
+						closestCellDist = cell.getDistanceTo(otherCell);
+					}
+				}
+				window.getGraphics().drawLine(500+(cell.getCentre().getX()*5), 500+(cell.getCentre().getY()*5),
+						500+(closestCell.getCentre().getX()*5), 500+(closestCell.getCentre().getY()*5));
+				
+				cell.addConnection(closestCell);
+				closestCell.addConnection(cell);
+				return false;
+			}
+		}
+		return true;
 	}
 }

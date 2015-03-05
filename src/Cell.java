@@ -1,6 +1,4 @@
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.geom.Point2D;
+import java.util.ArrayList;
 
 
 public class Cell implements Comparable<Cell> {
@@ -9,6 +7,7 @@ public class Cell implements Comparable<Cell> {
 	private Coord2D centre;
 	private int width;
 	private int height;
+	private ArrayList<Cell> connections = new ArrayList<Cell>();
 	
 	public Cell(Coord2D corner, int x, int y) {
 		this.corner = corner;
@@ -125,5 +124,17 @@ public class Cell implements Comparable<Cell> {
 		int xDist = centre.getX()-cell.centre.getX();
 		int yDist = centre.getY()-cell.centre.getY();
 		return Math.sqrt((xDist*xDist)+(yDist*yDist));
+	}
+	
+	public void addConnection(Cell cell) {
+		connections.add(cell);
+	}
+	
+	public ArrayList<Cell> getConnections() {
+		return connections;
+	}
+	
+	public int getConnectionCount() {
+		return connections.size();
 	}
 }
