@@ -168,7 +168,29 @@ public class Generator {
 		//If the cell on the end is still in list A, delete it from A and put its connected cells on the end of list B. Then take the next from list B.
 		//Once list B is exhausted, check list A. If it is empty, we are done. If not, check which is larger - A or ~A (i.e. deleted cells).
 		//Iterate through the smaller of A and ~A, finding the cell which is the closest to a cell in ~A or A. Draw a line between these 2 cells at the end.
-		//Regenerate list A and repeat until list A remains empty on a single go-through.
+		//Pick the next cell on list A and repeat. If this one empties without returning to the start, it is done.
+
+		finished = false;
+		@SuppressWarnings("unchecked")
+		ArrayList<Cell> cellGen = (ArrayList<Cell>) cells.clone();
+		while (!cellGen.isEmpty()) {
+			Cell cell = cellGen.remove(0);
+			ArrayList<Cell> connectedCells = cell.getConnections();
+			while (!connectedCells.isEmpty()) {
+				Cell cCell = connectedCells.remove(0);
+				for (Cell ccCell : cCell.getConnections()) {
+					if (cellGen.contains(ccCell)) {
+						cellGen.remove(ccCell);
+						connectedCells.add(ccCell);
+					}
+				}
+			}
+			if (!cellGen.isEmpty()) {
+				//Then there is a loop not connected, so go through each thing and thing it.
+			}
+		}
+		
+		
 	}
 	
 	public static void printGraphicalOutput(int minX, int maxX, int minY, int maxY) {
