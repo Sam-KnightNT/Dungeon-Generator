@@ -186,7 +186,30 @@ public class Generator {
 				}
 			}
 			if (!cellGen.isEmpty()) {
-				//Then there is a loop not connected, so go through each thing and thing it.
+				//Then there is a loop not connected, so check which is the smaller loop, go through each cell and find the closest one.
+				Cell closestCellA = null;
+				Cell closestCellB = null;
+				double closestDist = 100;
+				ArrayList<Cell> loopCells = (ArrayList<Cell>) cells.clone();
+				loopCells.removeAll(cellGen);
+				for (Cell loopCell : loopCells) {
+					for (Cell otherCell : cellGen) {
+						if (loopCell.getDistanceTo(otherCell)<closestDist) {
+							closestCellA = loopCell;
+							closestCellB = otherCell;
+							closestDist = loopCell.getDistanceTo(otherCell);
+						}
+					}
+				}
+				//Then connect the two.
+				closestCellA.addConnection(closestCellB);
+				closestCellB.addConnection(closestCellA);
+				
+				//And draw the line.
+				System.out.println("Connecting closest cells in disjoint loops");
+				window.getGraphics().setColor(Color.GREEN);
+				window.getGraphics().drawRect(500+(closestCellA.getCentre().getX()*5), 500+(closestCellA.getCentre().getY()*5),
+						500+(closestCellB.getCentre().getX()*5), 500+(closestCellB.getCentre().getY()*5));
 			}
 		}
 		
