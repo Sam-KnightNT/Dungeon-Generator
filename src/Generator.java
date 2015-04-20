@@ -39,8 +39,8 @@ public class Generator {
 		for (int i = 0; i<NUM_CELLS; i++) {
 			
 			int size = getRoomParameters();
-			int x = random.nextInt(RADIUS_LIMIT*2) - RADIUS_LIMIT;
-			int y = random.nextInt(RADIUS_LIMIT*2) - RADIUS_LIMIT;
+			int x = random.nextInt(RADIUS_LIMIT*4) - RADIUS_LIMIT;
+			int y = random.nextInt(RADIUS_LIMIT*1) - RADIUS_LIMIT;
 			
 			//int size = random.nextInt(MAX_SIZE-MIN_SIZE) + MIN_SIZE;
 			int x_size = random.nextInt(4) - 2 + size;
@@ -52,7 +52,7 @@ public class Generator {
 		window = new GameWindow(cells);
 		JFrame frame = new JFrame();
 		frame.add(window);
-		frame.setSize(1000, 1000);
+		frame.setSize(1600, 550);
 		frame.setVisible(true);
 		//printGraphicalOutput(minX, maxX, minY, maxY);
 
@@ -208,8 +208,8 @@ public class Generator {
 				//And draw the line.
 				System.out.println("Connecting closest cells in disjoint loops");
 				window.getGraphics().setColor(Color.GREEN);
-				window.getGraphics().drawRect(500+(closestCellA.getCentre().getX()*5), 500+(closestCellA.getCentre().getY()*5),
-						500+(closestCellB.getCentre().getX()*5), 500+(closestCellB.getCentre().getY()*5));
+				//window.getGraphics().drawRect(500+(closestCellA.getCentre().getX()*5), 500+(closestCellA.getCentre().getY()*5),
+				//		500+(closestCellB.getCentre().getX()*5), 500+(closestCellB.getCentre().getY()*5));
 			}
 		}
 		
@@ -260,8 +260,8 @@ public class Generator {
 						closestCellDist = cell.getDistanceTo(otherCell);
 					}
 				}
-				window.getGraphics().drawLine(500+(cell.getCentre().getX()*5), 500+(cell.getCentre().getY()*5),
-						500+(closestCell.getCentre().getX()*5), 500+(closestCell.getCentre().getY()*5));
+				window.getGraphics().drawLine(750+(cell.getCentre().getX()*5), 200+(cell.getCentre().getY()*5),
+						750+(closestCell.getCentre().getX()*5), 200+(closestCell.getCentre().getY()*5));
 				
 				cell.addConnection(closestCell);
 				closestCell.addConnection(cell);

@@ -30,12 +30,12 @@ public class GameWindow extends JPanel {
 		} else {
 			g.setColor(Color.BLUE);
 		}
-        g.fillRect(500+(cell.getCorner().getX()*5), 500+(cell.getCorner().getY()*5), cell.getW()*5, cell.getH()*5);
+        g.fillRect(750+(cell.getCorner().getX()*5), 200+(cell.getCorner().getY()*5), cell.getW()*5, cell.getH()*5);
         g.setColor(Color.BLACK);
-        g.drawRect(500+(cell.getCorner().getX()*5), 500+(cell.getCorner().getY()*5), cell.getW()*5, cell.getH()*5); 
+        g.drawRect(750+(cell.getCorner().getX()*5), 200+(cell.getCorner().getY()*5), cell.getW()*5, cell.getH()*5); 
 	}
 	
 	public void clearCell(Cell cell) {
-    	getGraphics().clearRect(500+(cell.getCorner().getX()*5), 500+(cell.getCorner().getY()*5), cell.getW()*5+1, cell.getH()*5+1);
+    	getGraphics().clearRect(750+(cell.getCorner().getX()*5), 200+(cell.getCorner().getY()*5), cell.getW()*5+1, cell.getH()*5+1);
 	}
 }
