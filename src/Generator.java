@@ -23,36 +23,47 @@ public class Generator {
 	 * Set any cells that intersect these (including larger cells) as corridor tiles
 	 */
 	
-	static final int NUM_CELLS = 150;
-	static final int RADIUS_LIMIT = 50;
+	static final int NUM_CELLS = 250;
+	static final int RADIUS_LIMIT_X = 70;
+	static final int RADIUS_LIMIT_Y = 50;
 	static final int MIN_SIZE = 3;
 	static final int MAX_SIZE = 20;
 	static final double VARIANCE = 3;
-	static Random random = new Random();
+	static final int CENTREX = 500;
+	static final int CENTREY = 375;
+	static Random random = new Random(3000);
 	static GameWindow window;
 	
 	static ArrayList<Cell> cells = new ArrayList<Cell>();
+	static ArrayList<Cell> corridors = new ArrayList<Cell>();
 	
 	public static void main(String[] args) {
-		
 		//Generate cells
 		for (int i = 0; i<NUM_CELLS; i++) {
 			
 			int size = getRoomParameters();
-			int x = random.nextInt(RADIUS_LIMIT*2) - RADIUS_LIMIT;
-			int y = random.nextInt(RADIUS_LIMIT*2) - RADIUS_LIMIT;
+			int x = random.nextInt(RADIUS_LIMIT_X*2) - RADIUS_LIMIT_X;
+			int y = random.nextInt(RADIUS_LIMIT_Y*2) - RADIUS_LIMIT_Y;
 			
 			//int size = random.nextInt(MAX_SIZE-MIN_SIZE) + MIN_SIZE;
 			int x_size = random.nextInt(4) - 2 + size;
 			int y_size = random.nextInt(4) - 2 + size;
 			Cell cell = new Cell(new Coord2D(x, y), x_size, y_size);
 			cells.add(cell);	
-		}
-		
+		}/*
+		cells.add(new Cell(new Coord2D(-20, 20), 10, 10));
+		cells.add(new Cell(new Coord2D(-15, -15), 15, 15));
+		cells.add(new Cell(new Coord2D(-10, -2), 6, 12));
+		cells.add(new Cell(new Coord2D(40, 40), 12, 20));
+		cells.add(new Cell(new Coord2D(45, 48), 8, 9));
+		cells.add(new Cell(new Coord2D(39, 53), 20, 6));
+		cells.add(new Cell(new Coord2D(46, -10), 8, 12));
+		cells.add(new Cell(new Coord2D(35, -45), 16, 11));
+		cells.add(new Cell(new Coord2D(40, -30), 12, 12));*/
 		window = new GameWindow(cells);
 		JFrame frame = new JFrame();
 		frame.add(window);
-		frame.setSize(1000, 1000);
+		frame.setSize(CENTREX*2, CENTREY*2);
 		frame.setVisible(true);
 		//printGraphicalOutput(minX, maxX, minY, maxY);
 
@@ -65,7 +76,6 @@ public class Generator {
 			overlaps = false;
 			Collections.sort(cells);
 			for (Cell cell : cells) {
-				
 				for (int i=cells.indexOf(cell)+1; i<NUM_CELLS; i++) {
 					if (cell.overlaps(cells.get(i))) {
 						overlaps = true;
@@ -89,12 +99,22 @@ public class Generator {
 			}
 		}
 		System.out.println("Success!");
-
-		ArrayList<Cell> oldCells = new ArrayList<Cell>();
-		for (Cell cell : cells) {
-			oldCells.add((Cell) cell.clone());
+		
+		//Delete any blue cells, i.e. ones which are less than 20 cells in size.
+		ArrayList<Integer> cellsToDelete = new ArrayList<Integer>();
+		for (int i=0; i<cells.size(); i++) {
+			Cell cell = cells.get(i);
+			if (cell.getH()*cell.getW()<=20) {
+				cellsToDelete.add(i);
+			}
 		}
 		
+		for (int i=cellsToDelete.size()-1; i>=0; i--) {
+			System.out.println("i: "+i);
+			window.clearCell(cells.get(cellsToDelete.get(i)));
+			System.out.println(cellsToDelete.get(i)+", "+cells.get(cellsToDelete.get(i)).toStringShort());
+			cells.remove((int) cellsToDelete.get(i));
+		}
 		//After all this is done, the cells will be massively skewed towards the negative - re-orient them so that the mean is 0 again
 		int totalX = 0;
 		int totalY = 0;
@@ -110,17 +130,7 @@ public class Generator {
 		
 		Coord2D averagePosition = new Coord2D(totalX, totalY);
 		
-
-		//Transpose the cells to the appropriate place
-		for (Cell cell : cells) {
-			window.clearCell(cell);
-			cell.setCorner(Coord2D.subtract(cell.getCorner(), averagePosition));
-		}
-		
-		//Redraw them on-screen
-		for (Cell cell : cells) {
-			window.repaintCell(cell);
-		}
+		window.slowTranspose(cells, averagePosition);
 		
 		//Now, construct a Delaunay Path and a Minimum Spanning Tree, to get the corridors which should be drawn.
 		//Delaunay Triangulation - http://en.wikipedia.org/wiki/Delaunay_triangulation
@@ -133,19 +143,6 @@ public class Generator {
 		
 		//For now, draw a line from each cell to its nearest neighbour.
 		window.getGraphics().setColor(Color.GREEN);
-		for (Cell cell : cells) {
-			//TODO - add additional check. Only red cells should be considered.
-			double closestCellDist = 1000;
-			Cell closestCell = null;
-			for (Cell otherCell : cells) {
-				if (otherCell != cell && cell.getDistanceTo(otherCell)<closestCellDist) {
-					closestCell = otherCell;
-					closestCellDist = cell.getDistanceTo(otherCell);
-				}
-			}
-			//window.getGraphics().drawLine(500+(cell.getCentre().getX()*5), 500+(cell.getCentre().getY()*5),
-			//		500+(closestCell.getCentre().getX()*5), 500+(closestCell.getCentre().getY()*5));
-		}
 		
 		//Create a series of lines between the points, that cover each and every point. Go recursively - check each point.
 		//If it doesn't have 2 points from it, find the closest point to it that doesn't have a line to it. Draw a line to that point, and pause for a bit.
@@ -154,7 +151,7 @@ public class Generator {
 		while (!finished) {
 			//return true if all points have been iterated through and none without triangles are found.
 			try {
-				Thread.sleep(50);
+				Thread.sleep(5);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -173,26 +170,65 @@ public class Generator {
 		finished = false;
 		@SuppressWarnings("unchecked")
 		ArrayList<Cell> cellGen = (ArrayList<Cell>) cells.clone();
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		//While cellGen still has cells in it...
 		while (!cellGen.isEmpty()) {
+			//Take the first one
 			Cell cell = cellGen.remove(0);
+			
+			//Get all of its connections.
 			ArrayList<Cell> connectedCells = cell.getConnections();
+			
+			//While there are connections in this list...
 			while (!connectedCells.isEmpty()) {
+				//Take the first one in the list.
 				Cell cCell = connectedCells.remove(0);
+				window.drawCellPart(Color.GREEN, cCell, 5);
+				//For each of its connections...
 				for (Cell ccCell : cCell.getConnections()) {
+					//If the full list contains the connected cell...
 					if (cellGen.contains(ccCell)) {
+						//Remove it.
 						cellGen.remove(ccCell);
+						//Draw a green square, to indicate the cell has been reached.
+						window.drawCellPart(Color.GREEN, ccCell, 3);
 						connectedCells.add(ccCell);
+						try {
+							Thread.sleep(5);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 					}
 				}
+			}
+			for (Cell cellP : cells) {
+				window.repaintCell(cellP);
 			}
 			if (!cellGen.isEmpty()) {
 				//Then there is a loop not connected, so check which is the smaller loop, go through each cell and find the closest one.
 				Cell closestCellA = null;
 				Cell closestCellB = null;
 				double closestDist = 100;
-				ArrayList<Cell> loopCells = (ArrayList<Cell>) cells.clone();
-				loopCells.removeAll(cellGen);
-				for (Cell loopCell : loopCells) {
+				Collections.sort(cells);
+				Collections.sort(cellGen);
+				boolean changed = cells.removeAll(cellGen);
+				System.out.println(changed);
+				System.out.print("1st group");
+				for (Cell cell1 : cells) {
+					System.out.print(": "+cell1.toStringShort());
+				}
+				System.out.print("\n2nd group");
+				for (Cell cell1 : cellGen) {
+					System.out.print(": "+cell1.toStringShort());
+				}
+				System.out.println();
+				for (Cell loopCell : cells) {
 					for (Cell otherCell : cellGen) {
 						if (loopCell.getDistanceTo(otherCell)<closestDist) {
 							closestCellA = loopCell;
@@ -201,18 +237,102 @@ public class Generator {
 						}
 					}
 				}
+				cells.addAll(cellGen);
 				//Then connect the two.
 				closestCellA.addConnection(closestCellB);
 				closestCellB.addConnection(closestCellA);
 				
+				for (Cell cell1 : cells) {
+					for (Cell cell2 : cell1.getConnections()) {
+						System.out.println("Connection between "+cell1.toStringShort()+" and "+cell2.toStringShort());
+					}
+				}
 				//And draw the line.
-				System.out.println("Connecting closest cells in disjoint loops");
-				window.getGraphics().setColor(Color.GREEN);
-				window.getGraphics().drawRect(500+(closestCellA.getCentre().getX()*5), 500+(closestCellA.getCentre().getY()*5),
-						500+(closestCellB.getCentre().getX()*5), 500+(closestCellB.getCentre().getY()*5));
+				System.out.println("Connecting closest cells in disjoint loops. Cells are "+closestCellA.getCentre()+" and "+closestCellB.getCentre());
+				window.getGraphics().setColor(Color.WHITE);
+				window.getGraphics().drawLine(CENTREX+(closestCellA.getCentre().getX()*5), CENTREY+(closestCellA.getCentre().getY()*5),
+						CENTREX+(closestCellB.getCentre().getX()*5), CENTREY+(closestCellB.getCentre().getY()*5));
+
+				//Finally, restart cellGen so that it tries again.
+				cellGen = (ArrayList<Cell>) cells.clone();
 			}
 		}
-		
+		//Draw corridors.
+		//Shuffle the thing and iterate through it, taking the first connection found.
+		//Delete the connection coming the other way, and check the direction of the cell it is connected to.
+		//Create a cell between the two, such that it extends to a random point (skewed towards the closest point to the other one, somehow) on one Cell, plus one
+		//To a random point on the other one.
+		//Draw this new Cell in green.
+		boolean found;
+		do {
+			found = false;
+			Collections.shuffle(cells, random);
+			search:
+			for (Cell cell : cells) {
+				if (cell.getConnectionCount()>0) {
+					found = true;
+					Cell connection = cell.getConnections().get(0);
+					System.out.println(cell.removeConnection(connection));
+					System.out.println(connection.removeConnection(cell));
+					//Now check which direction the connection is in
+					int relX = connection.getX()-cell.getX();
+					int relY = connection.getY()-cell.getY();
+					if (Math.abs(relY)>Math.abs(relX)) {
+						//Check if it's north or south
+						int minCoords =	Math.min(cell.getX(), connection.getX());
+						int maxCoords = Math.max(cell.getX()+cell.getW(), connection.getX()+connection.getW());
+						Cell corridor = null;
+						if (relY>0) {
+							//North - create a new Cell above cell.
+							int gap = relY-cell.getH();
+							if (gap<0) {
+								corridor = new Cell(new Coord2D(minCoords, cell.getCentre().getY()), Math.abs(relX), connection.getY()-cell.getCentre().getY());
+							} else {
+								corridor = new Cell(new Coord2D(minCoords, cell.getY()+cell.getH()), maxCoords-minCoords, gap);
+							}
+							
+						} else {
+							int gap = -(connection.getH()+relY);
+							corridor = new Cell(new Coord2D(minCoords, connection.getY()+connection.getH()), maxCoords-minCoords, gap);
+						}
+						corridor.addConnection(cell);
+						corridor.addConnection(connection);
+						System.out.println("Creating corridor at "+corridor.toStringShort());
+						window.repaintCell(corridor, Color.GREEN);
+						//Check if this overlaps anything at all.
+						for (Cell cellC : cells) {
+							if (corridor.strictlyOverlaps(cellC)) {
+								System.out.println("Corridor "+corridor.toStringShort()+" overlaps cell "+cellC.toStringShort()+", "+corridor.overlaps(cellC));
+								if (corridor.isRightOf(cellC)) {
+									//If the right side of the cell is to the left of the right of the parent cell, it's possible to truncate the left of the corridor.
+									if (cellC.getX()+cellC.getW()+2<cell.getX()+cell.getW()) {
+										//Then truncate the left of the corridor.
+									} else {
+										//We have a problem. No idea what to do here? Maybe add an Entrance to the obstructing Room, then add another Corridor linking that one and the 2nd Room.
+									}
+								} else {
+									//Otherwise it is to the left. So, do the opposite!
+								}
+							}
+						}
+						for (Cell cellC : corridors) {
+							if (corridor.strictlyOverlaps(cellC)) {
+								System.out.println("Corridor "+corridor.toStringShort()+" overlaps corridor "+cellC.toStringShort()+", "+corridor.overlaps(cellC));
+							}
+						}
+						//And draw the cell.
+						corridors.add(corridor);
+						break search;
+					}
+					try {
+						Thread.sleep(250);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+		} while (found);
 		
 	}
 	
@@ -248,7 +368,7 @@ public class Generator {
 	}
 	
 	private static boolean triangulate() {
-		Collections.shuffle(cells);
+		Collections.shuffle(cells, random);
 		for (Cell cell : cells) {
 			if (cell.getConnectionCount() < 2) {
 				//Create a new Connection to the closest cell that doesn't already have one.
@@ -260,8 +380,8 @@ public class Generator {
 						closestCellDist = cell.getDistanceTo(otherCell);
 					}
 				}
-				window.getGraphics().drawLine(500+(cell.getCentre().getX()*5), 500+(cell.getCentre().getY()*5),
-						500+(closestCell.getCentre().getX()*5), 500+(closestCell.getCentre().getY()*5));
+				window.getGraphics().drawLine(CENTREX+(cell.getCentre().getX()*5), CENTREY+(cell.getCentre().getY()*5),
+						CENTREX+(closestCell.getCentre().getX()*5), CENTREY+(closestCell.getCentre().getY()*5));
 				
 				cell.addConnection(closestCell);
 				closestCell.addConnection(cell);
@@ -269,5 +389,13 @@ public class Generator {
 			}
 		}
 		return true;
+	}
+	
+	private static ArrayList<Cell> copyCells(ArrayList<Cell> cells) {
+		ArrayList<Cell> newCells = new ArrayList<Cell>();
+		for (Cell cell : cells) {
+			newCells.add(new Cell(new Coord2D(cell.getCorner().getX(), cell.getCorner().getY()), cell.getW(), cell.getH()));
+		}
+		return newCells;
 	}
 }

@@ -100,6 +100,34 @@ public class Cell implements Comparable<Cell> {
 		return horz && vert;
 	}
 	
+	public boolean strictlyOverlaps(Cell c) {
+		int x1 = corner.getX();
+		int x2 = c.corner.getX();
+		int y1 = corner.getY();
+		int y2 = c.corner.getY();
+		
+		//Horizontal and vertical collisions. Iff both are true, the cells overlap.
+		boolean horz = false;
+		boolean vert = false;
+
+		//If this is further right than the other Cell, check that one's size.
+		if (x1>x2) {
+			horz = x2+c.width > x1;
+		} else {
+			horz = x1+width > x2;
+		}
+		
+		//If this is below the other cell, check that one's size.
+		if (y1>y2) {
+			vert = y2+c.height > y1;
+		} else {
+			vert = y1+height > y2;
+		}
+		
+		//Return true iff horz and vert collisions.
+		return horz && vert;
+	}
+	
 	public void move(int xDiff, int yDiff) {
 		corner = new Coord2D(getX()+xDiff, getY()+yDiff);
 	}
@@ -134,7 +162,19 @@ public class Cell implements Comparable<Cell> {
 		return connections;
 	}
 	
+	public boolean removeConnection(Cell cell) {
+		return connections.remove(cell);
+	}
+	
 	public int getConnectionCount() {
 		return connections.size();
+	}
+	
+	public String toStringShort() {
+		return String.format("(%3d, %3d), (%3d, %3d)", corner.getX(), corner.getY(), width, height);
+	}
+
+	public boolean isRightOf(Cell cell) {
+		return centre.getX()>cell.getCentre().getX();
 	}
 }
