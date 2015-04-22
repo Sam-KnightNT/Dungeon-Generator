@@ -23,6 +23,36 @@ public class Generator {
 	 * Set any cells that intersect these (including larger cells) as corridor tiles
 	 */
 	
+	/*
+	 * Alternative method
+	 * Create a number of very large cells, and separation steer them, but only while they are strictly overlapping.
+	 * For each cell:
+	 * -Get all cells that are directly connected to this one.
+	 * -For each one of these:
+	 * --Select a random position for a Corridor.
+	 * --Progressively shave lines off each, leaving the Corridor intact, until it gets to some length
+	 */
+	
+	/*
+	 * Alternative method
+	 * Do it like D&D does
+	 * Have a large number of pre-set Room types, which are defined in terms of probabilities and put in Slots in a list.
+	 * For example, Slot 8 could be a Throne Room, which is 9x12 and has pillars, with a Gold throne in the centre and 3 entrances at set locations.
+	 * Once this is generated, roll to determine which Room or Corridor is beyond these, if any. For example, the Throne Room's first door could have attributes
+	 * {0, 0, 0, 1, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 6, 6, 6, 6, 6, 6, 6, 9, 9, 9, 9}
+	 * Roll a die from 1 to size(thatarray).
+	 * If it is 01 to 03, nothing is created - the door does not exist.
+	 * If it is 04, put Room 1 behind it - this is a Treasure room, with an invisible door that needs to be searched carefully for.
+	 * 05 or 06 -> Room 2, trap treasure room - identical to the other one, but with traps instead of treasure.
+	 * 07 to 14 -> Room 4, a Corridor that is 5 long and 2 wide, with a door on the left on the 3rd space, and a space for another Corridor at the end.
+	 * 15 to 21 -> Room 6, a Corridor that is 8 long and 3 wide, where the 3rd row is trapped.
+	 * 22 to 25 -> Room 9, a trap-filled Corridor that is guaranteed to be a treasure room at the end of it.
+	 * Define all entrances in this way, as well as any potential rewards. E.g. in the treasure room there are 3 treasure spots - {1, 4, 4, 4, 4, 5}, {4, 4, 4, 5, 6, 7, 7}, {4, 7, 7, 8, 9, 10, 11}.
+	 * Each time one of these Rooms is generated it may alter its own chances in other Rooms.
+	 * For example, if that entrance above generates any room, add another 0 chance to that entrance's list. If it's a treasure room, add 1 to all trap treasure options. If it's a trap treasure room, add 1 to all treasure rooms.
+	 * After the first Throne Room, change slot 8 to have a 1/8 chance of being another Throne Room (possibly modified to be smaller), and 7/8 to be a more generic Room. If this 2nd Throne Room is genned, reduce that chance to 0.
+	 * Make sure the new Room can be placed at each stage. If not, remove it from this particular entrance's pool and try again.
+	 */
 	static final int NUM_CELLS = 250;
 	static final int RADIUS_LIMIT_X = 70;
 	static final int RADIUS_LIMIT_Y = 50;
