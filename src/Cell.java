@@ -24,6 +24,7 @@ public class Cell implements Comparable<Cell> {
 		return corner;
 	}
 
+	//TODO - determine if it'd be a problem to change this to centre.getX()
 	public int getX() {
 		return corner.getX();
 	}
@@ -176,5 +177,39 @@ public class Cell implements Comparable<Cell> {
 
 	public boolean isRightOf(Cell cell) {
 		return centre.getX()>cell.getCentre().getX();
+	}
+	
+	public boolean isAbove(Cell cell) {
+		return centre.getY()<cell.getCentre().getY();
+	}
+	
+	public boolean isStrictlyRightOf(Cell cell) {
+		return corner.getX()>cell.getCorner().getX();
+	}
+	
+	public boolean isStrictlyLeftOf(Cell cell) {
+		return (corner.getX()+getW())<cell.getCorner().getX();
+	}
+	
+	public boolean isStrictlyAbove(Cell cell) {
+		return (corner.getY()+getH())<(cell.getCorner().getY());
+	}
+	
+	public double angleWith(Cell cell) {
+		int dx = cell.getCentre().getX()-centre.getX();
+		int dy = cell.getCentre().getY()-centre.getY();
+		return Math.atan2(dy, dx)*180/Math.PI;
+	}
+	
+	public Coord2D getLowerLeftCorner() {
+		return new Coord2D(corner.getX(), corner.getY()+getH());
+	}
+	
+	public Coord2D getLowerRightCorner() {
+		return new Coord2D(corner.getX()+getW(), corner.getY()+getH());
+	}
+	
+	public Coord2D getUpperRightCorner() {
+		return new Coord2D(corner.getX()+getW(), corner.getY());
 	}
 }

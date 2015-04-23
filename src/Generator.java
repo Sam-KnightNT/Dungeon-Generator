@@ -416,6 +416,46 @@ function reconstruct_path(came_from,current)
 		//closed_set should consist of only the cells that are diagonally in between the randomly-generated start and end points.
 		for (Connection connection : connections) {
 			//Create a random start and end point for the A* algorithm, and run it.
+			Cell A = connection.getCellA();
+			Cell B = connection.getCellB();
+			//Check what side cell B is on, then generate a random number that is most likely to be on the correct side.
+			//Only possible to generate the entrance on a given side, if that side is facing at least part of the other cell.
+			
+			//The probability of this being used is proportional to the "facingness" of the cells. So, work out the angle between them.
+
+			Coord2D A1 = A.getCorner();
+			Coord2D A2 = A.getLowerLeftCorner();
+			Coord2D A3 = A.getLowerRightCorner();
+			Coord2D A4 = A.getUpperRightCorner();
+			
+			Coord2D B1 = B.getCorner();
+			Coord2D B2 = B.getLowerLeftCorner();
+			Coord2D B3 = B.getLowerRightCorner();
+			Coord2D B4 = B.getUpperRightCorner();
+			for (int i=1; i<A.getW()-1; i++) {
+				//Get the angle the top and bottom cells make with the 4 corners of the other cell.
+				//Need to work out the angle that all 4 sides make with the other cell.
+				//For each grid cell on the 4 walls of the cell, work out how much of the other cell they can see.
+				//Find the angles between the 4 corners. Clamp them to values depending on the wall. Then take the difference between the minimum and maximum. That's the probability this one is going to be used.
+				
+			}
+			
+			//OH MY GOD FUCK ALL THAT
+			//Just work out the angle, and which points intersect that line in each cell. Set those as the start/end points.
+			double angle = A.angleWith(B);
+			
+			//Need to find the intersect point of y=mx and either y=height/2, or x=width/2, whichever gives a smaller value for x and y. This of course depending on whether it's above or below for fuck's sake.
+			int x = B.getCentre().getX()-A.getCentre().getX();
+			int y = B.getCentre().getY()-A.getCentre().getY();
+			double m = y/x;
+			
+			if (A.getH()/(2*m)>A.getW()*2/m) {
+				//This means it intersects the left/right sides, I think. Check which one it is.
+				if (x>0) {
+					//Then add the coordinate that it hit - i.e. corner+width, corner+something related to m, IDFK.
+				}
+			}
+			
 			A_Star()
 		}
 	}
