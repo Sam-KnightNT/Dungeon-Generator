@@ -198,7 +198,7 @@ public class Cell implements Comparable<Cell> {
 	public double angleWith(Cell cell) {
 		int dx = cell.getCentre().getX()-centre.getX();
 		int dy = cell.getCentre().getY()-centre.getY();
-		return Math.atan2(dy, dx)*180/Math.PI;
+		return Math.atan2(dy, dx);
 	}
 	
 	public Coord2D getLowerLeftCorner() {

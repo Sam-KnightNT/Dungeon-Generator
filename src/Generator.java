@@ -53,7 +53,7 @@ public class Generator {
 	 * After the first Throne Room, change slot 8 to have a 1/8 chance of being another Throne Room (possibly modified to be smaller), and 7/8 to be a more generic Room. If this 2nd Throne Room is genned, reduce that chance to 0.
 	 * Make sure the new Room can be placed at each stage. If not, remove it from this particular entrance's pool and try again.
 	 */
-	static final int NUM_CELLS = 250;
+	static final int NUM_CELLS = 2;
 	static final int RADIUS_LIMIT_X = 70;
 	static final int RADIUS_LIMIT_Y = 50;
 	static final int MIN_SIZE = 3;
@@ -61,6 +61,7 @@ public class Generator {
 	static final double VARIANCE = 3;
 	static final int CENTREX = 500;
 	static final int CENTREY = 375;
+	static final int SIZE_MULT = 5;
 	static Random random = new Random(3000);
 	static GameWindow window;
 	
@@ -81,7 +82,8 @@ public class Generator {
 			int y_size = random.nextInt(4) - 2 + size;
 			Cell cell = new Cell(new Coord2D(x, y), x_size, y_size);
 			cells.add(cell);	
-		}/*
+		}
+		cells.clear();
 		cells.add(new Cell(new Coord2D(-20, 20), 10, 10));
 		cells.add(new Cell(new Coord2D(-15, -15), 15, 15));
 		cells.add(new Cell(new Coord2D(-10, -2), 6, 12));
@@ -90,7 +92,11 @@ public class Generator {
 		cells.add(new Cell(new Coord2D(39, 53), 20, 6));
 		cells.add(new Cell(new Coord2D(46, -10), 8, 12));
 		cells.add(new Cell(new Coord2D(35, -45), 16, 11));
-		cells.add(new Cell(new Coord2D(40, -30), 12, 12));*/
+		cells.add(new Cell(new Coord2D(40, -30), 12, 12));
+		
+		cells.clear();
+		cells.add(new Cell(new Coord2D(0, 0), 10, 10));
+		cells.add(new Cell(new Coord2D(15, 0), 10, 10));
 		window = new GameWindow(cells);
 		JFrame frame = new JFrame();
 		frame.add(window);
@@ -444,19 +450,77 @@ function reconstruct_path(came_from,current)
 			//Just work out the angle, and which points intersect that line in each cell. Set those as the start/end points.
 			double angle = A.angleWith(B);
 			
-			//Need to find the intersect point of y=mx and either y=height/2, or x=width/2, whichever gives a smaller value for x and y. This of course depending on whether it's above or below for fuck's sake.
-			int x = B.getCentre().getX()-A.getCentre().getX();
-			int y = B.getCentre().getY()-A.getCentre().getY();
-			double m = y/x;
+			double m = Math.tan(angle);
 			
-			if (A.getH()/(2*m)>A.getW()*2/m) {
-				//This means it intersects the left/right sides, I think. Check which one it is.
-				if (x>0) {
-					//Then add the coordinate that it hit - i.e. corner+width, corner+something related to m, IDFK.
+			int h = A.getH();
+			int w = A.getW();
+			
+			Coord2D start = null;
+			//Now, get which side it intersects. We need to check for each quadrant.
+			if (angle >= 0 && angle < Math.PI/2) {
+				if (h<=m*w) {
+					//Intersects x, so find y given x.
+					start = new Coord2D(w, m*w);
+				} else {
+					start = new Coord2D(m/h, h);
+				}
+			} else if (angle >= Math.PI/2 && angle < Math.PI) {
+				if (h<=-m*w) {
+					start = new Coord2D(w, m*w);
+				} else {
+					start = new Coord2D(m/h, h);
+				}
+			} else if (angle >= Math.PI && angle < 3*Math.PI/2) {
+				if (-h<=-m*w) {
+					start = new Coord2D(w, m*w);
+				} else {
+					start = new Coord2D(m/h, h);
+				}
+			} else if (angle >= 3*Math.PI && angle < 2*Math.PI) {
+				if (-h<=m*w) {
+					start = new Coord2D(w, m*w);
+				} else {
+					start = new Coord2D(m/h, h);
 				}
 			}
 			
-			A_Star()
+			//Now do the same for the end.
+			angle = B.angleWith(A);
+			m = Math.tan(angle);
+			h = B.getH();
+			w = B.getW();
+			Coord2D end = null;
+			if (angle >= 0 && angle < Math.PI/2) {
+				if (h<=m*w) {
+					//Intersects x, so find y given x.
+					end = new Coord2D(w, m*w);
+				} else {
+					end = new Coord2D(m/h, h);
+				}
+			} else if (angle >= Math.PI/2 && angle < Math.PI) {
+				if (h<=-m*w) {
+					end = new Coord2D(w, m*w);
+				} else {
+					end = new Coord2D(m/h, h);
+				}
+			} else if (angle >= Math.PI && angle < 3*Math.PI/2) {
+				if (-h<=-m*w) {
+					end = new Coord2D(w, m*w);
+				} else {
+					end = new Coord2D(m/h, h);
+				}
+			} else if (angle >= 3*Math.PI && angle < 2*Math.PI) {
+				if (-h<=m*w) {
+					end = new Coord2D(w, m*w);
+				} else {
+					end = new Coord2D(m/h, h);
+				}
+			}
+			
+			window.repaintPoint(start, new Color(55, 55, 190));
+			
+			//Now do the A* algorithm, with these as the start and end points.
+			//A_Star()
 		}
 	}
 	
@@ -504,13 +568,17 @@ function reconstruct_path(came_from,current)
 						closestCellDist = cell.getDistanceTo(otherCell);
 					}
 				}
-				window.getGraphics().drawLine(CENTREX+(cell.getCentre().getX()*5), CENTREY+(cell.getCentre().getY()*5),
-						CENTREX+(closestCell.getCentre().getX()*5), CENTREY+(closestCell.getCentre().getY()*5));
+				if (closestCell!=null) {
+					window.getGraphics().drawLine(CENTREX+(cell.getCentre().getX()*SIZE_MULT), CENTREY+(cell.getCentre().getY()*SIZE_MULT),
+							CENTREX+(closestCell.getCentre().getX()*SIZE_MULT), CENTREY+(closestCell.getCentre().getY()*SIZE_MULT));
 				
-				cell.addConnection(closestCell);
-				closestCell.addConnection(cell);
-				connections.add(new Connection(cell, closestCell));
-				return false;
+					cell.addConnection(closestCell);
+					closestCell.addConnection(cell);
+					connections.add(new Connection(cell, closestCell));
+					return false;
+				} else {
+					return true;
+				}
 			}
 		}
 		return true;
