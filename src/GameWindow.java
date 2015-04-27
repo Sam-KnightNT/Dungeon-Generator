@@ -14,11 +14,9 @@ public class GameWindow extends JPanel {
 	private static final int CENTREY = 375;
 	private static final int SIZE_MULT = 5;
 	private Graphics g;
-	private ArrayList<Cell> cells;
 	
-	public GameWindow(ArrayList<Cell> cells) {
+	public GameWindow() {
 		setBorder(BorderFactory.createLineBorder(Color.black));
-		this.cells = cells;
 	}
 
 	public void setGraphics() {

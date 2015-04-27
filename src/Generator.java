@@ -101,7 +101,7 @@ public class Generator {
 		cells.add(new Cell(new Coord2D(0, -12), 14, 10));
 		cells.add(new Cell(new Coord2D(-15, 0), 10, 10));
 		cells.add(new Cell(new Coord2D(0, 15), 10, 10));*/
-		window = new GameWindow(cells);
+		window = new GameWindow();
 		JFrame frame = new JFrame();
 		frame.add(window);
 		frame.setSize(CENTREX*2, CENTREY*2);
