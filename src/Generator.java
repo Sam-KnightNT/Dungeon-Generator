@@ -53,7 +53,7 @@ public class Generator {
 	 * After the first Throne Room, change slot 8 to have a 1/8 chance of being another Throne Room (possibly modified to be smaller), and 7/8 to be a more generic Room. If this 2nd Throne Room is genned, reduce that chance to 0.
 	 * Make sure the new Room can be placed at each stage. If not, remove it from this particular entrance's pool and try again.
 	 */
-	static final int NUM_CELLS = 6;
+	static final int NUM_CELLS = 150;
 	static final int RADIUS_LIMIT_X = 70;
 	static final int RADIUS_LIMIT_Y = 50;
 	static final int MIN_SIZE = 3;
@@ -79,19 +79,19 @@ public class Generator {
 			int y = random.nextInt(RADIUS_LIMIT_Y*2) - RADIUS_LIMIT_Y;
 			
 			//int size = random.nextInt(MAX_SIZE-MIN_SIZE) + MIN_SIZE;
-			int x_size = random.nextInt(4) - 2 + size;
-			int y_size = random.nextInt(4) - 2 + size;
+			int x_size = random.nextInt(2)*2 - 2 + size;
+			int y_size = random.nextInt(2)*2 - 2 + size;
 			Cell cell = new Cell(new Coord2D(x, y), x_size, y_size);
 			cells.add(cell);	
 		}
-		cells.clear();
+		/*cells.clear();
 		cells.add(new Cell(new Coord2D(-20, 20), 10, 10));
 		cells.add(new Cell(new Coord2D(-15, -15), 15, 15));
 		cells.add(new Cell(new Coord2D(-10, -2), 6, 12));
 		cells.add(new Cell(new Coord2D(46, -10), 8, 12));
 		cells.add(new Cell(new Coord2D(30, -45), 16, 11));
 		cells.add(new Cell(new Coord2D(40, -30), 12, 12));
-		/*
+		
 		cells.clear();
 		cells.add(new Cell(new Coord2D(0, 0), 10, 10));
 		cells.add(new Cell(new Coord2D(13, 0), 16, 10));
@@ -106,6 +106,12 @@ public class Generator {
 		window.setGraphics();
 		//printGraphicalOutput(minX, maxX, minY, maxY);
 
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		//Sort the cells by x-value. Check each pair in turn. If they overlap, move the furthest one from the origin 1 square outwards.
 		//Sort the cells by y-value. Check each pair in turn. If they overlap, move the furthest one from the origin 1 square outwards.
 		//Repeat until there are no overlaps.
@@ -190,7 +196,7 @@ public class Generator {
 		while (!finished) {
 			//return true if all points have been iterated through and none without triangles are found.
 			try {
-				Thread.sleep(5);
+				Thread.sleep(50);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -432,16 +438,16 @@ public class Generator {
 			if (angle >= ang1 && angle < ang2) {
 				//In this case, it will intersect the bottom side. We know y in this case, it's h. I know it seems upside-down, but it works.
 				//If the height is even, it needs to be shifted one up.
-				start = new Coord2D((h/m)-1, (A.getH() % 2 == 0 ? h-1 : h));
+				start = new Coord2D(h/m, h);
 			} else if (angle >= ang2 && angle < ang3) {
 				//Intersects left line. x = -w.
-				start = new Coord2D(-w, -m*w-1);
+				start = new Coord2D(-w, -m*w);
 			} else if (angle >= ang3 && angle < ang4) {
 				//Intersects bottom line. y = -h.
 				start = new Coord2D(-h/m, -h);
 			} else {
 				//Intersects right line. x = w.
-				start = new Coord2D(w-1, m*w);
+				start = new Coord2D(w, m*w);
 			}
 			
 			//If it's on a corner, just shove it 1 space up/down.
@@ -472,16 +478,16 @@ public class Generator {
 			//Now, get which side it intersects. We need to check for each quadrant.
 			if (angle >= ang1 && angle < ang2) {
 				//Intersects bottom line. y = h.
-				end = new Coord2D((h/m)-1, h);
+				end = new Coord2D(h/m, h);
 			} else if (angle >= ang2 && angle < ang3) {
 				//Intersects left line. x = -w.
-				end = new Coord2D(-w, -m*w-1);
+				end = new Coord2D(-w, -m*w);
 			} else if (angle >= ang3 && angle < ang4) {
 				//Intersects top line. y = -h.
 				end = new Coord2D(-h/m, -h);
 			} else {
 				//Intersects right line. x = w.
-				end = new Coord2D(w-1, m*w);
+				end = new Coord2D(w, m*w);
 			}
 
 			System.out.println(Coord2D.difference(B.getCentre(), B.getCorner()));
@@ -494,7 +500,12 @@ public class Generator {
 			
 			System.out.println();
 			
-			A_Star(start, end);
+			ArrayList<Coord2D> path = A_Star(start, end);
+			
+			for (Coord2D coord : path) {
+				System.out.println(coord);
+				window.repaintPoint(coord, new Color(25, 180, 55));
+			}
 		}
 	}
 	
@@ -526,7 +537,8 @@ public class Generator {
 		while (r<MIN_SIZE || r>MAX_SIZE) {
 			r = (random.nextGaussian()*VARIANCE)+MIN_SIZE;
 		}
-		return (int) Math.round(r);
+		int s = (int) Math.round(r);
+		return s%2==0 ? s+1 : s;
 	}
 	
 	private static boolean triangulate() {
@@ -556,7 +568,7 @@ public class Generator {
 		return true;
 	}
 	
-	private static void A_Star(Coord2D start, Coord2D end) {
+	private static ArrayList<Coord2D> A_Star(Coord2D start, Coord2D end) {
 		//Naive for now, ignore other cells.
 		/* A* Algorithm pseudocode
 		 * function A*(start,goal)
@@ -601,6 +613,74 @@ public class Generator {
 		
 		//The first one is the new node - it "came from" the second.
 		HashMap<Coord2D, Coord2D> cameFrom = new HashMap<Coord2D, Coord2D>();
+		
+		HashMap<Coord2D, Double> gScore = new HashMap<Coord2D, Double>();
+		HashMap<Coord2D, Double> fScore = new HashMap<Coord2D, Double>();
+		gScore.put(start, 0.0);
+		
+		double gSc = gScore.get(start);
+		
+		
+		int estimate = costEstimate(start, end);
+		
+		fScore.put(start, gScore.get(start)+costEstimate(start, end));
+		Coord2D current;
+		while (!openSet.isEmpty()) {
+			current = getLowestOf(openSet, fScore);
+			if (current==end) {
+				return reconstructPath(cameFrom, end);
+			}
+			openSet.remove(current);
+			closedSet.add(current);
+			for (Coord2D neighbour : current.getOrthogonalNeighbours()) {
+				if (!closedSet.contains(neighbour)) {
+					//neighbour "came from" current
+					cameFrom.put(neighbour, current);
+					
+					//If the path has not made a turn (i.e. if current-cameFrom(current) = neighbour-current), score is 1, otherwise 1.25.
+					double tentativeG = gScore.get(current) +
+							(Coord2D.difference(current, cameFrom.get(current)).equals(Coord2D.difference(neighbour, current)) ? 1 : 1.25);
+					
+					if (!openSet.contains(neighbour) || tentativeG < gScore.get(neighbour)) {
+						cameFrom.put(neighbour, current);
+						gScore.put(neighbour, tentativeG);
+						fScore.put(neighbour, gScore.get(neighbour) + costEstimate(neighbour, end));
+						if (!openSet.contains(neighbour)) {
+							openSet.add(neighbour);
+						}
+					}
+				}
+			}
+		}
+		//If it gets here, it has failed.
+		System.out.println("Failure.");
+		System.exit(2);
+		return null;
+	}
+	
+	private static ArrayList<Coord2D> reconstructPath(HashMap<Coord2D, Coord2D> cameFrom, Coord2D current) {
+		ArrayList<Coord2D> totalPath = new ArrayList<Coord2D>();
+		while (cameFrom.containsKey(current)) {
+			current = cameFrom.get(current);
+			totalPath.add(current);
+		}
+		return totalPath;
+	}
+	
+	private static int costEstimate(Coord2D node, Coord2D goal) {
+		return Math.abs(goal.getX()-node.getX())+Math.abs(goal.getY()-node.getY());
+	}
+	
+	private static Coord2D getLowestOf(ArrayList<Coord2D> set, HashMap<Coord2D, Double> scores) {
+		Coord2D selected = set.get(0);
+		double minScore = scores.get(selected);
+		for (Coord2D coord : scores.keySet()) {
+			if (set.contains(coord) && scores.get(coord)<minScore) {
+				minScore = scores.get(coord);
+				selected = coord;
+			}
+		}
+		return selected;
 	}
 	
 	private static ArrayList<Cell> copyCells(ArrayList<Cell> cells) {

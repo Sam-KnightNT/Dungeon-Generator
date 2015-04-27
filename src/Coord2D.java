@@ -1,5 +1,7 @@
+import java.util.ArrayList;
 
-public class Coord2D {
+
+public class Coord2D implements Comparable {
 
 	private int x;
 	private int y;
@@ -79,5 +81,24 @@ public class Coord2D {
 	
 	public String toString() {
 		return "("+x+", "+y+")";
+	}
+
+	public ArrayList<Coord2D> getOrthogonalNeighbours() {
+		ArrayList<Coord2D> neighbours = new ArrayList<Coord2D>();
+		neighbours.add(new Coord2D(x-1, y));
+		neighbours.add(new Coord2D(x+1, y));
+		neighbours.add(new Coord2D(x, y-1));
+		neighbours.add(new Coord2D(x, y+1));
+		return neighbours;
+	}
+
+	@Override
+	public int compareTo(Object o) {
+		if (!(o instanceof Coord2D)) {
+			return (Integer) null;
+		} else {
+			Coord2D c = (Coord2D) o;
+			return c.x + (c.y << 16);
+		}
 	}
 }
