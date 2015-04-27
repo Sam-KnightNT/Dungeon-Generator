@@ -598,6 +598,9 @@ public class Generator {
 		ArrayList<Coord2D> closedSet = new ArrayList<Coord2D>();
 		ArrayList<Coord2D> openSet = new ArrayList<Coord2D>();
 		openSet.add(start);
+		
+		//The first one is the new node - it "came from" the second.
+		HashMap<Coord2D, Coord2D> cameFrom = new HashMap<Coord2D, Coord2D>();
 	}
 	
 	private static ArrayList<Cell> copyCells(ArrayList<Cell> cells) {
