@@ -198,7 +198,11 @@ public class Cell implements Comparable<Cell> {
 	public double angleWith(Cell cell) {
 		int dx = cell.getCentre().getX()-centre.getX();
 		int dy = cell.getCentre().getY()-centre.getY();
-		return Math.atan2(dy, dx);
+		double ang = Math.atan2(dy, dx);
+		
+		//Is ang 0 or greater? If so, return ang. Otherwise, add 2pi to it.
+		//This gets it into the range [0, 2pi) (that's 0 to 2pi, including 0 but excluding 2pi)
+		return ang >= 0 ? ang : ang+(2*Math.PI);
 	}
 	
 	public Coord2D getLowerLeftCorner() {
@@ -211,5 +215,9 @@ public class Cell implements Comparable<Cell> {
 	
 	public Coord2D getUpperRightCorner() {
 		return new Coord2D(corner.getX()+getW(), corner.getY());
+	}
+
+	public boolean isCorner(Coord2D relC) {
+		return (relC.getX()==0 || relC.getX()==width-1) && (relC.getY()==0 || relC.getY()==height-1);
 	}
 }

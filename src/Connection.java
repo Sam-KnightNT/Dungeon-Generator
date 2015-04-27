@@ -26,4 +26,7 @@ public class Connection {
 		this.cellB = cellB;
 	}
 	
+	public String toString() {
+		return "Connection between "+cellA+" and "+cellB;
+	}
 }

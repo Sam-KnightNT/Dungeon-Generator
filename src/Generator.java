@@ -62,6 +62,7 @@ public class Generator {
 	static final int CENTREX = 500;
 	static final int CENTREY = 375;
 	static final int SIZE_MULT = 5;
+	static final double TAU = Math.PI*2;
 	static Random random = new Random(3000);
 	static GameWindow window;
 	
@@ -93,10 +94,13 @@ public class Generator {
 		cells.add(new Cell(new Coord2D(46, -10), 8, 12));
 		cells.add(new Cell(new Coord2D(35, -45), 16, 11));
 		cells.add(new Cell(new Coord2D(40, -30), 12, 12));
-		
+		/*
 		cells.clear();
 		cells.add(new Cell(new Coord2D(0, 0), 10, 10));
-		cells.add(new Cell(new Coord2D(15, 0), 10, 10));
+		cells.add(new Cell(new Coord2D(13, 0), 16, 10));
+		cells.add(new Cell(new Coord2D(0, -12), 14, 10));
+		cells.add(new Cell(new Coord2D(-15, 0), 10, 10));
+		cells.add(new Cell(new Coord2D(0, 15), 10, 10));*/
 		window = new GameWindow(cells);
 		JFrame frame = new JFrame();
 		frame.add(window);
@@ -129,7 +133,7 @@ public class Generator {
 			
 			if (overlaps) {
 				try {
-					Thread.sleep(100);
+					Thread.sleep(200);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -418,7 +422,8 @@ function reconstruct_path(came_from,current)
         total_path.append(current)
     return total_path
 		 */
-		
+		window.repaintPoint(new Coord2D(0, 0), new Color(0, 0, 0));
+		System.out.println(TAU/4+"\n"+TAU/2+"\n"+3*TAU/4+"\n"+TAU);
 		//closed_set should consist of only the cells that are diagonally in between the randomly-generated start and end points.
 		for (Connection connection : connections) {
 			//Create a random start and end point for the A* algorithm, and run it.
@@ -429,7 +434,7 @@ function reconstruct_path(came_from,current)
 			
 			//The probability of this being used is proportional to the "facingness" of the cells. So, work out the angle between them.
 
-			Coord2D A1 = A.getCorner();
+			/*Coord2D A1 = A.getCorner();
 			Coord2D A2 = A.getLowerLeftCorner();
 			Coord2D A3 = A.getLowerRightCorner();
 			Coord2D A4 = A.getUpperRightCorner();
@@ -444,11 +449,11 @@ function reconstruct_path(came_from,current)
 				//For each grid cell on the 4 walls of the cell, work out how much of the other cell they can see.
 				//Find the angles between the 4 corners. Clamp them to values depending on the wall. Then take the difference between the minimum and maximum. That's the probability this one is going to be used.
 				
-			}
+			}*/
 			
 			//OH MY GOD FUCK ALL THAT
 			//Just work out the angle, and which points intersect that line in each cell. Set those as the start/end points.
-			double angle = A.angleWith(B);
+			double angle = (A.angleWith(B));
 			
 			double m = Math.tan(angle);
 			
@@ -456,71 +461,80 @@ function reconstruct_path(came_from,current)
 			int w = A.getW();
 			
 			Coord2D start = null;
+			
+			//Need 4 angles, that represent the angle made by the 4 corners.
+			//Angles that are between these 4 indicate which side is intersected first.
+			double ang1 = Math.atan2(h, w);
+			double ang2 = Math.atan2(h, -w);
+			double ang3 = ang1+Math.PI;
+			double ang4 = ang2+Math.PI;
+			
+			h /= 2;
+			w /= 2;
 			//Now, get which side it intersects. We need to check for each quadrant.
-			if (angle >= 0 && angle < Math.PI/2) {
-				if (h<=m*w) {
-					//Intersects x, so find y given x.
-					start = new Coord2D(w, m*w);
-				} else {
-					start = new Coord2D(m/h, h);
-				}
-			} else if (angle >= Math.PI/2 && angle < Math.PI) {
-				if (h<=-m*w) {
-					start = new Coord2D(w, m*w);
-				} else {
-					start = new Coord2D(m/h, h);
-				}
-			} else if (angle >= Math.PI && angle < 3*Math.PI/2) {
-				if (-h<=-m*w) {
-					start = new Coord2D(w, m*w);
-				} else {
-					start = new Coord2D(m/h, h);
-				}
-			} else if (angle >= 3*Math.PI && angle < 2*Math.PI) {
-				if (-h<=m*w) {
-					start = new Coord2D(w, m*w);
-				} else {
-					start = new Coord2D(m/h, h);
-				}
+			if (angle >= ang1 && angle < ang2) {
+				//In this case, it will intersect the top side. We know y in this case, it's h.
+				start = new Coord2D((h/m)-1, h-1);
+			} else if (angle >= ang2 && angle < ang3) {
+				//Intersects left line. x = -w.
+				start = new Coord2D(-w, -m*w-1);
+			} else if (angle >= ang3 && angle < ang4) {
+				//Intersects bottom line. y = -h.
+				start = new Coord2D(-h/m, -h);
+			} else {
+				//Intersects right line. x = w.
+				start = new Coord2D(w-1, m*w);
 			}
+			
+			//If it's on a corner, just shove it 1 space up/down.
+			if (A.isCorner(Coord2D.sum(start, Coord2D.difference(A.getCentre(), A.getCorner())))) {
+				start.moveY((int) -Math.signum(start.getY()));
+			}
+			
+			//Now draw the point.
+			window.repaintPoint(Coord2D.sum(A.getCentre(), start), new Color(85, 85, 220));
 			
 			//Now do the same for the end.
 			angle = B.angleWith(A);
 			m = Math.tan(angle);
 			h = B.getH();
 			w = B.getW();
+			
 			Coord2D end = null;
-			if (angle >= 0 && angle < Math.PI/2) {
-				if (h<=m*w) {
-					//Intersects x, so find y given x.
-					end = new Coord2D(w, m*w);
-				} else {
-					end = new Coord2D(m/h, h);
-				}
-			} else if (angle >= Math.PI/2 && angle < Math.PI) {
-				if (h<=-m*w) {
-					end = new Coord2D(w, m*w);
-				} else {
-					end = new Coord2D(m/h, h);
-				}
-			} else if (angle >= Math.PI && angle < 3*Math.PI/2) {
-				if (-h<=-m*w) {
-					end = new Coord2D(w, m*w);
-				} else {
-					end = new Coord2D(m/h, h);
-				}
-			} else if (angle >= 3*Math.PI && angle < 2*Math.PI) {
-				if (-h<=m*w) {
-					end = new Coord2D(w, m*w);
-				} else {
-					end = new Coord2D(m/h, h);
-				}
+			
+			//Need 4 angles, that represent the angle made by the 4 corners.
+			//Angles that are between these 4 indicate which side is intersected first.
+			ang1 = Math.atan2(h, w);
+			ang2 = Math.atan2(h, -w);
+			ang3 = ang1+Math.PI;
+			ang4 = ang2+Math.PI;
+			
+			h /= 2;
+			w /= 2;
+			//Now, get which side it intersects. We need to check for each quadrant.
+			if (angle >= ang1 && angle < ang2) {
+				//In this case, it will intersect the top side. We know y in this case, it's h.
+				end = new Coord2D((h/m)-1, h-1);
+			} else if (angle >= ang2 && angle < ang3) {
+				//Intersects left line. x = -w.
+				end = new Coord2D(-w, -m*w-1);
+			} else if (angle >= ang3 && angle < ang4) {
+				//Intersects bottom line. y = -h.
+				end = new Coord2D(-h/m, -h);
+			} else {
+				//Intersects right line. x = w.
+				end = new Coord2D(w-1, m*w);
+			}
+
+			System.out.println(Coord2D.difference(B.getCentre(), B.getCorner()));
+			System.out.println(Coord2D.sum(end, Coord2D.difference(B.getCentre(), B.getCorner())));
+			if (B.isCorner(Coord2D.sum(end, Coord2D.difference(B.getCentre(), B.getCorner())))) {
+				end.moveY((int) -Math.signum(end.getY()));
 			}
 			
-			window.repaintPoint(start, new Color(55, 55, 190));
+			window.repaintPoint(Coord2D.sum(B.getCentre(), end), new Color(85, 85, 220));
 			
-			//Now do the A* algorithm, with these as the start and end points.
-			//A_Star()
+			System.out.println();
 		}
 	}
 	
@@ -568,17 +582,13 @@ function reconstruct_path(came_from,current)
 						closestCellDist = cell.getDistanceTo(otherCell);
 					}
 				}
-				if (closestCell!=null) {
-					window.getGraphics().drawLine(CENTREX+(cell.getCentre().getX()*SIZE_MULT), CENTREY+(cell.getCentre().getY()*SIZE_MULT),
-							CENTREX+(closestCell.getCentre().getX()*SIZE_MULT), CENTREY+(closestCell.getCentre().getY()*SIZE_MULT));
+				window.getGraphics().drawLine(CENTREX+(cell.getCentre().getX()*SIZE_MULT), CENTREY+(cell.getCentre().getY()*SIZE_MULT),
+						CENTREX+(closestCell.getCentre().getX()*SIZE_MULT), CENTREY+(closestCell.getCentre().getY()*SIZE_MULT));
 				
-					cell.addConnection(closestCell);
-					closestCell.addConnection(cell);
-					connections.add(new Connection(cell, closestCell));
-					return false;
-				} else {
-					return true;
-				}
+				cell.addConnection(closestCell);
+				closestCell.addConnection(cell);
+				connections.add(new Connection(cell, closestCell));
+				return false;
 			}
 		}
 		return true;

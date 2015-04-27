@@ -25,6 +25,22 @@ public class Coord2D {
 		return y;
 	}
 	
+	public void setX(int x) {
+		this.x = x;
+	}
+
+	public void setY(int y) {
+		this.y = y;
+	}
+	
+	public void moveX(int dx) {
+		this.x += dx;
+	}
+
+	public void moveY(int dy) {
+		this.y += dy;
+	}
+
 	public Coord2D subtract(Coord2D c) {
 		x-=c.x;
 		y-=c.y;
@@ -35,6 +51,14 @@ public class Coord2D {
 		x+=c.x;
 		y+=c.y;
 		return this;
+	}
+	
+	public static Coord2D sum(Coord2D a, Coord2D b) {
+		return new Coord2D(a.x+b.x, a.y+b.y);
+	}
+	
+	public static Coord2D difference(Coord2D a, Coord2D b) {
+		return new Coord2D(a.x-b.x, a.y-b.y);
 	}
 	
 	public Coord2D getFraction(double fraction) {

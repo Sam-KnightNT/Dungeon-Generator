@@ -30,6 +30,7 @@ public class GameWindow extends JPanel {
 	}
 	
 	public void repaintPoint(Coord2D point, Color colour) {
+		g.setColor(colour);
 		g.fillRect(CENTREX+(point.getX()*SIZE_MULT), CENTREY+(point.getY()*SIZE_MULT), SIZE_MULT, SIZE_MULT);
 	}
 	
