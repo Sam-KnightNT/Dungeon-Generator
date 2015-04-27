@@ -381,45 +381,6 @@ public class Generator {
 		//Then, perform A* until you hit the other point.
 		//First, expand the view to see what's going on.
 		
-		/* A* Algorithm pseudocode
-		 * function A*(start,goal)
-		 * 		closedset := the empty set    // The set of nodes already evaluated.
-		 * 		openset := {start}    // The set of tentative nodes to be evaluated, initially containing the start node
-		 * 		came_from := the empty map    // The map of navigated nodes.
-		 * 		
-		 * 		g_score[start] := 0    // Cost from start along best known path.
-		 * 		// Estimated total cost from start to goal through y.
-		 * 		f_score[start] := g_score[start] + heuristic_cost_estimate(start, goal)
- 
-    while openset is not empty
-        current := the node in openset having the lowest f_score[] value
-        if current = goal
-            return reconstruct_path(came_from, goal)
- 
-        remove current from openset
-        add current to closedset
-        for each neighbor in neighbor_nodes(current)
-            if neighbor in closedset
-                continue
-            tentative_g_score := g_score[current] + dist_between(current,neighbor)
- 
-            if neighbor not in openset or tentative_g_score < g_score[neighbor] 
-                came_from[neighbor] := current
-                g_score[neighbor] := tentative_g_score
-                f_score[neighbor] := g_score[neighbor] + heuristic_cost_estimate(neighbor, goal)
-                if neighbor not in openset
-                    add neighbor to openset
- 
-    return failure
- 
-function reconstruct_path(came_from,current)
-    total_path := [current]
-    while current in came_from:
-        current := came_from[current]
-        total_path.append(current)
-    return total_path
-		 */
-		
 		//closed_set should consist of only the cells that are diagonally in between the randomly-generated start and end points.
 		for (Connection connection : connections) {
 			//Create a random start and end point for the A* algorithm, and run it.
@@ -532,6 +493,8 @@ function reconstruct_path(came_from,current)
 			window.repaintPoint(Coord2D.sum(B.getCentre(), end), new Color(85, 85, 220));
 			
 			System.out.println();
+			
+			A_Star(start, end);
 		}
 	}
 	
@@ -591,6 +554,50 @@ function reconstruct_path(came_from,current)
 			}
 		}
 		return true;
+	}
+	
+	private static void A_Star(Coord2D start, Coord2D end) {
+		//Naive for now, ignore other cells.
+		/* A* Algorithm pseudocode
+		 * function A*(start,goal)
+		 * 		closedset := the empty set    // The set of nodes already evaluated.
+		 * 		openset := {start}    // The set of tentative nodes to be evaluated, initially containing the start node
+		 * 		came_from := the empty map    // The map of navigated nodes.
+		 * 		
+		 * 		g_score[start] := 0    // Cost from start along best known path.
+		 * 		// Estimated total cost from start to goal through y.
+		 * 		f_score[start] := g_score[start] + heuristic_cost_estimate(start, goal)
+		 * 		while openset is not empty
+		 * 			current := the node in openset having the lowest f_score[] value
+		 * 			if current = goal
+		 * 				return reconstruct_path(came_from, goal)
+		 * 			remove current from openset
+		 * 			add current to closedset
+		 * 			for each neighbor in neighbor_nodes(current)
+		 * 				if neighbor in closedset
+		 * 					continue
+		 * 				tentative_g_score := g_score[current] + dist_between(current,neighbor)
+		 * 				
+		 * 				if neighbor not in openset or tentative_g_score < g_score[neighbor]
+		 * 					came_from[neighbor] := current
+		 * 					g_score[neighbor] := tentative_g_score
+		 * 					f_score[neighbor] := g_score[neighbor] + heuristic_cost_estimate(neighbor, goal)
+		 * 					if neighbor not in openset
+		 * 						add neighbor to openset
+		 * 
+		 *		return failure
+		 * 
+		 * function reconstruct_path(came_from,current)
+		 * 		total_path := [current]
+		 * 		while current in came_from:
+		 * 			current := came_from[current]
+		 * 			total_path.append(current)
+		 * 		return total_path
+		 */
+		
+		ArrayList<Coord2D> closedSet = new ArrayList<Coord2D>();
+		ArrayList<Coord2D> openSet = new ArrayList<Coord2D>();
+		openSet.add(start);
 	}
 	
 	private static ArrayList<Cell> copyCells(ArrayList<Cell> cells) {
