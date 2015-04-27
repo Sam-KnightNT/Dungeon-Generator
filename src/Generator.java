@@ -53,7 +53,7 @@ public class Generator {
 	 * After the first Throne Room, change slot 8 to have a 1/8 chance of being another Throne Room (possibly modified to be smaller), and 7/8 to be a more generic Room. If this 2nd Throne Room is genned, reduce that chance to 0.
 	 * Make sure the new Room can be placed at each stage. If not, remove it from this particular entrance's pool and try again.
 	 */
-	static final int NUM_CELLS = 2;
+	static final int NUM_CELLS = 6;
 	static final int RADIUS_LIMIT_X = 70;
 	static final int RADIUS_LIMIT_Y = 50;
 	static final int MIN_SIZE = 3;
@@ -88,11 +88,8 @@ public class Generator {
 		cells.add(new Cell(new Coord2D(-20, 20), 10, 10));
 		cells.add(new Cell(new Coord2D(-15, -15), 15, 15));
 		cells.add(new Cell(new Coord2D(-10, -2), 6, 12));
-		cells.add(new Cell(new Coord2D(40, 40), 12, 20));
-		cells.add(new Cell(new Coord2D(45, 48), 8, 9));
-		cells.add(new Cell(new Coord2D(39, 53), 20, 6));
 		cells.add(new Cell(new Coord2D(46, -10), 8, 12));
-		cells.add(new Cell(new Coord2D(35, -45), 16, 11));
+		cells.add(new Cell(new Coord2D(30, -45), 16, 11));
 		cells.add(new Cell(new Coord2D(40, -30), 12, 12));
 		/*
 		cells.clear();
@@ -422,8 +419,7 @@ function reconstruct_path(came_from,current)
         total_path.append(current)
     return total_path
 		 */
-		window.repaintPoint(new Coord2D(0, 0), new Color(0, 0, 0));
-		System.out.println(TAU/4+"\n"+TAU/2+"\n"+3*TAU/4+"\n"+TAU);
+		
 		//closed_set should consist of only the cells that are diagonally in between the randomly-generated start and end points.
 		for (Connection connection : connections) {
 			//Create a random start and end point for the A* algorithm, and run it.
@@ -473,8 +469,9 @@ function reconstruct_path(came_from,current)
 			w /= 2;
 			//Now, get which side it intersects. We need to check for each quadrant.
 			if (angle >= ang1 && angle < ang2) {
-				//In this case, it will intersect the top side. We know y in this case, it's h.
-				start = new Coord2D((h/m)-1, h-1);
+				//In this case, it will intersect the bottom side. We know y in this case, it's h. I know it seems upside-down, but it works.
+				//If the height is even, it needs to be shifted one up.
+				start = new Coord2D((h/m)-1, (A.getH() % 2 == 0 ? h-1 : h));
 			} else if (angle >= ang2 && angle < ang3) {
 				//Intersects left line. x = -w.
 				start = new Coord2D(-w, -m*w-1);
@@ -513,13 +510,13 @@ function reconstruct_path(came_from,current)
 			w /= 2;
 			//Now, get which side it intersects. We need to check for each quadrant.
 			if (angle >= ang1 && angle < ang2) {
-				//In this case, it will intersect the top side. We know y in this case, it's h.
-				end = new Coord2D((h/m)-1, h-1);
+				//Intersects bottom line. y = h.
+				end = new Coord2D((h/m)-1, h);
 			} else if (angle >= ang2 && angle < ang3) {
 				//Intersects left line. x = -w.
 				end = new Coord2D(-w, -m*w-1);
 			} else if (angle >= ang3 && angle < ang4) {
-				//Intersects bottom line. y = -h.
+				//Intersects top line. y = -h.
 				end = new Coord2D(-h/m, -h);
 			} else {
 				//Intersects right line. x = w.
@@ -576,12 +573,14 @@ function reconstruct_path(came_from,current)
 				//Create a new Connection to the closest cell that doesn't already have one.
 				double closestCellDist = 1000;
 				Cell closestCell = null;
+				cells.remove(cell);
 				for (Cell otherCell : cells) {
-					if (otherCell != cell && cell.getDistanceTo(otherCell)<closestCellDist && !cell.getConnections().contains(otherCell)) {
+					if (cell.getDistanceTo(otherCell)<closestCellDist && !cell.getConnections().contains(otherCell)) {
 						closestCell = otherCell;
 						closestCellDist = cell.getDistanceTo(otherCell);
 					}
 				}
+				cells.add(cell);
 				window.getGraphics().drawLine(CENTREX+(cell.getCentre().getX()*SIZE_MULT), CENTREY+(cell.getCentre().getY()*SIZE_MULT),
 						CENTREX+(closestCell.getCentre().getX()*SIZE_MULT), CENTREY+(closestCell.getCentre().getY()*SIZE_MULT));
 				

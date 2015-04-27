@@ -62,6 +62,18 @@ public class Cell implements Comparable<Cell> {
 		String s = String.format("Cell of size %3d, %3d. Corner %3d, %3d.", width, height, corner.getX(), corner.getY());
 		return s;
 	}
+	
+	public boolean equals(Object o) {
+		if (o == null) {
+			return false;
+		} else if (!(o instanceof Cell)) {
+			return false;
+		} else {
+			Cell c = (Cell) o;
+			return  this.getX() == c.getX() && this.getY() == c.getY() &&
+					this.getW() == c.getW() && this.getH() == c.getH();
+		}
+	}
 
 	public int compareTo(Cell c) {
 		if (corner.getX()!=c.corner.getX()) {
