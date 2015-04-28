@@ -58,6 +58,7 @@ public class Generator {
 	static final int RADIUS_LIMIT_Y = 50;
 	static final int MIN_SIZE = 3;
 	static final int MAX_SIZE = 20;
+	static final int SKEW = 1;
 	static final double VARIANCE = 3;
 	static final int CENTREX = 500;
 	static final int CENTREY = 375;
@@ -83,8 +84,8 @@ public class Generator {
 			int y_size = random.nextInt(2)*2 - 2 + size;
 			Cell cell = new Cell(new Coord2D(x, y), x_size, y_size);
 			cells.add(cell);	
-		}
-		/*cells.clear();
+		}/*
+		cells.clear();
 		cells.add(new Cell(new Coord2D(-20, 20), 10, 10));
 		cells.add(new Cell(new Coord2D(-15, -15), 15, 15));
 		cells.add(new Cell(new Coord2D(-10, -2), 6, 12));
@@ -97,7 +98,13 @@ public class Generator {
 		cells.add(new Cell(new Coord2D(13, 0), 16, 10));
 		cells.add(new Cell(new Coord2D(0, -12), 14, 10));
 		cells.add(new Cell(new Coord2D(-15, 0), 10, 10));
-		cells.add(new Cell(new Coord2D(0, 15), 10, 10));*/
+		cells.add(new Cell(new Coord2D(0, 15), 10, 10));
+		
+		cells.clear();
+		cells.add(new Cell(new Coord2D(-80, 0), 100, 10));
+		cells.add(new Cell(new Coord2D(5, -20), 15, 15));
+		cells.add(new Cell(new Coord2D(5, 25), 15, 15));
+		cells.add(new Cell(new Coord2D(30, -15), 10, 10));*/
 		window = new GameWindow();
 		JFrame frame = new JFrame();
 		frame.add(window);
@@ -105,13 +112,7 @@ public class Generator {
 		frame.setVisible(true);
 		window.setGraphics();
 		//printGraphicalOutput(minX, maxX, minY, maxY);
-
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+		
 		//Sort the cells by x-value. Check each pair in turn. If they overlap, move the furthest one from the origin 1 square outwards.
 		//Sort the cells by y-value. Check each pair in turn. If they overlap, move the furthest one from the origin 1 square outwards.
 		//Repeat until there are no overlaps.
@@ -196,7 +197,7 @@ public class Generator {
 		while (!finished) {
 			//return true if all points have been iterated through and none without triangles are found.
 			try {
-				Thread.sleep(50);
+				Thread.sleep(25);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -216,7 +217,7 @@ public class Generator {
 		@SuppressWarnings("unchecked")
 		ArrayList<Cell> cellGen = (ArrayList<Cell>) cells.clone();
 		try {
-			Thread.sleep(1000);
+			Thread.sleep(500);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -244,7 +245,7 @@ public class Generator {
 						window.drawCellPart(Color.GREEN, ccCell, 3);
 						connectedCells.add(ccCell);
 						try {
-							Thread.sleep(5);
+							Thread.sleep(25);
 						} catch (InterruptedException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -535,7 +536,7 @@ public class Generator {
 	private static int getRoomParameters() {
 		double r = 0;
 		while (r<MIN_SIZE || r>MAX_SIZE) {
-			r = (random.nextGaussian()*VARIANCE)+MIN_SIZE;
+			r = (random.nextGaussian()*VARIANCE)+SKEW;
 		}
 		int s = (int) Math.round(r);
 		return s%2==0 ? s+1 : s;
@@ -623,8 +624,9 @@ public class Generator {
 		
 		int estimate = costEstimate(start, end);
 		
-		fScore.put(start, gScore.get(start)+costEstimate(start, end));
+		fScore.put(start, gSc+estimate);
 		Coord2D current;
+		cameFrom.put(start, new Coord2D(0, 0));
 		while (!openSet.isEmpty()) {
 			current = getLowestOf(openSet, fScore);
 			if (current==end) {
