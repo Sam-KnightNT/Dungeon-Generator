@@ -53,7 +53,7 @@ public class Generator {
 	 * After the first Throne Room, change slot 8 to have a 1/8 chance of being another Throne Room (possibly modified to be smaller), and 7/8 to be a more generic Room. If this 2nd Throne Room is genned, reduce that chance to 0.
 	 * Make sure the new Room can be placed at each stage. If not, remove it from this particular entrance's pool and try again.
 	 */
-	static final int NUM_CELLS = 150;
+	static final int NUM_CELLS = 4;
 	static final int RADIUS_LIMIT_X = 70;
 	static final int RADIUS_LIMIT_Y = 50;
 	static final int MIN_SIZE = 3;
@@ -62,7 +62,7 @@ public class Generator {
 	static final double VARIANCE = 3;
 	static final int CENTREX = 500;
 	static final int CENTREY = 375;
-	static final int SIZE_MULT = 5;
+	static final int SIZE_MULT = 14;
 	static final double TAU = Math.PI*2;
 	static Random random = new Random(3000);
 	static GameWindow window;
@@ -84,27 +84,14 @@ public class Generator {
 			int y_size = random.nextInt(2)*2 - 2 + size;
 			Cell cell = new Cell(new Coord2D(x, y), x_size, y_size);
 			cells.add(cell);	
-		}/*
-		cells.clear();
-		cells.add(new Cell(new Coord2D(-20, 20), 10, 10));
-		cells.add(new Cell(new Coord2D(-15, -15), 15, 15));
-		cells.add(new Cell(new Coord2D(-10, -2), 6, 12));
-		cells.add(new Cell(new Coord2D(46, -10), 8, 12));
-		cells.add(new Cell(new Coord2D(30, -45), 16, 11));
-		cells.add(new Cell(new Coord2D(40, -30), 12, 12));
+		}
 		
 		cells.clear();
-		cells.add(new Cell(new Coord2D(0, 0), 10, 10));
-		cells.add(new Cell(new Coord2D(13, 0), 16, 10));
-		cells.add(new Cell(new Coord2D(0, -12), 14, 10));
-		cells.add(new Cell(new Coord2D(-15, 0), 10, 10));
-		cells.add(new Cell(new Coord2D(0, 15), 10, 10));
+		cells.add(new Cell(new Coord2D(-15, -12), 10, 10));
+		cells.add(new Cell(new Coord2D(15, -12), 10, 10));
+		cells.add(new Cell(new Coord2D(-15, 12), 10, 10));
+		cells.add(new Cell(new Coord2D(15, 12), 10, 10));
 		
-		cells.clear();
-		cells.add(new Cell(new Coord2D(-80, 0), 100, 10));
-		cells.add(new Cell(new Coord2D(5, -20), 15, 15));
-		cells.add(new Cell(new Coord2D(5, 25), 15, 15));
-		cells.add(new Cell(new Coord2D(30, -15), 10, 10));*/
 		window = new GameWindow();
 		JFrame frame = new JFrame();
 		frame.add(window);
@@ -387,7 +374,8 @@ public class Generator {
 		//Do the same with the other one.
 		//Then, perform A* until you hit the other point.
 		//First, expand the view to see what's going on.
-		
+
+		System.out.println("Beginning A* search.");
 		//closed_set should consist of only the cells that are diagonally in between the randomly-generated start and end points.
 		for (Connection connection : connections) {
 			//Create a random start and end point for the A* algorithm, and run it.
@@ -500,8 +488,8 @@ public class Generator {
 			window.repaintPoint(Coord2D.sum(B.getCentre(), end), new Color(85, 85, 220));
 			
 			System.out.println();
-			
-			ArrayList<Coord2D> path = A_Star(start, end);
+
+			ArrayList<Coord2D> path = A_Star(Coord2D.sum(A.getCentre(), start), Coord2D.sum(B.getCentre(), end));
 			
 			for (Coord2D coord : path) {
 				System.out.println(coord);
@@ -634,25 +622,46 @@ public class Generator {
 			}
 			openSet.remove(current);
 			closedSet.add(current);
+			window.repaintPoint(current, new Color(155, 25, 155));
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+			}
 			for (Coord2D neighbour : current.getOrthogonalNeighbours()) {
-				if (!closedSet.contains(neighbour)) {
-					//neighbour "came from" current
-					cameFrom.put(neighbour, current);
-					
-					//If the path has not made a turn (i.e. if current-cameFrom(current) = neighbour-current), score is 1, otherwise 1.25.
-					double tentativeG = gScore.get(current) +
-							(Coord2D.difference(current, cameFrom.get(current)).equals(Coord2D.difference(neighbour, current)) ? 1 : 1.25);
-					
-					if (!openSet.contains(neighbour) || tentativeG < gScore.get(neighbour)) {
+				if (!containedInCells(neighbour)) {
+					if (!closedSet.contains(neighbour)) {
+						window.repaintPoint(neighbour, new Color(180, 120, 40));
+						//neighbour "came from" current
 						cameFrom.put(neighbour, current);
-						gScore.put(neighbour, tentativeG);
-						fScore.put(neighbour, gScore.get(neighbour) + costEstimate(neighbour, end));
-						if (!openSet.contains(neighbour)) {
-							openSet.add(neighbour);
+					
+						//If the path has not made a turn (i.e. if current-cameFrom(current) = neighbour-current), score is 1, otherwise 1.25.
+						double tentativeG = gScore.get(current) +
+								(Coord2D.difference(current, cameFrom.get(current)).equals(Coord2D.difference(neighbour, current)) ? 1 : 1.25);
+						
+						if (!openSet.contains(neighbour) || tentativeG < gScore.get(neighbour)) {
+							cameFrom.put(neighbour, current);
+							gScore.put(neighbour, tentativeG);
+							fScore.put(neighbour, gScore.get(neighbour) + costEstimate(neighbour, end));
+							if (!openSet.contains(neighbour)) {
+								openSet.add(neighbour);
+							}
 						}
+						try {
+							Thread.sleep(500);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						} finally {
+							window.repaintPoint(neighbour, new Color(140, 80, 0));
+						}
+					} else {
+						window.repaintPoint(neighbour, new Color(100, 40, 0));
 					}
+				} else {
+					window.repaintPoint(neighbour, new Color(200, 10, 10));
 				}
 			}
+			window.repaintPoint(current, new Color(140, 80, 0));
 		}
 		//If it gets here, it has failed.
 		System.out.println("Failure.");
@@ -691,5 +700,14 @@ public class Generator {
 			newCells.add(new Cell(new Coord2D(cell.getCorner().getX(), cell.getCorner().getY()), cell.getW(), cell.getH()));
 		}
 		return newCells;
+	}
+	
+	private static boolean containedInCells(Coord2D coord) {
+		for (Cell cell : cells) {
+			if (cell.contains(coord)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

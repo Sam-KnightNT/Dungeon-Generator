@@ -232,4 +232,11 @@ public class Cell implements Comparable<Cell> {
 	public boolean isCorner(Coord2D relC) {
 		return (relC.getX()==0 || relC.getX()==width-1) && (relC.getY()==0 || relC.getY()==height-1);
 	}
+
+	public boolean contains(Coord2D coord) {
+		int dx = coord.getX() - corner.getX();
+		int dy = coord.getY() - corner.getY();
+		return  dx >= 0 && dx <= width &&
+				dy >= 0 && dy <= height;
+	}
 }

@@ -101,4 +101,13 @@ public class Coord2D implements Comparable {
 			return c.x + (c.y << 16);
 		}
 	}
+
+	public boolean equals(Object o) {
+		if (!(o instanceof Coord2D)) {
+			return false;
+		} else {
+			Coord2D c = (Coord2D) o;
+			return c.x == x && c.y == y;
+		}
+	}
 }
