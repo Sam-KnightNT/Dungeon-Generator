@@ -638,7 +638,19 @@ public class Generator {
 						//If the path has not made a turn (i.e. if current-cameFrom(current) = neighbour-current), score is 1, otherwise 1.25.
 						double tentativeG = gScore.get(current) +
 								(Coord2D.difference(current, cameFrom.get(current)).equals(Coord2D.difference(neighbour, current)) ? 1 : 1.25);
-						
+
+						try {
+							openSet.contains(neighbour);
+						} catch (NullPointerException e) {
+							System.out.println("OpenSet crashed!");
+							e.printStackTrace();
+						}
+						try {
+							gScore.get(neighbour);
+						} catch (NullPointerException e) {
+							System.out.println("gScore crashed!");
+							e.printStackTrace();
+						}
 						if (!openSet.contains(neighbour) || tentativeG < gScore.get(neighbour)) {
 							cameFrom.put(neighbour, current);
 							gScore.put(neighbour, tentativeG);
@@ -648,7 +660,7 @@ public class Generator {
 							}
 						}
 						try {
-							Thread.sleep(500);
+							Thread.sleep(250);
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						} finally {
