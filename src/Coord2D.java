@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 
 
-public class Coord2D implements Comparable {
+public class Coord2D implements Comparable<Object> {
 
 	private int x;
 	private int y;
@@ -95,19 +95,29 @@ public class Coord2D implements Comparable {
 	@Override
 	public int compareTo(Object o) {
 		if (!(o instanceof Coord2D)) {
-			return (Integer) null;
+			System.out.println("Wasn't instance of Coord2D");
+			return Integer.MAX_VALUE;
 		} else {
 			Coord2D c = (Coord2D) o;
-			return c.x + (c.y << 16);
+			System.out.println(c.x+", "+x+", "+(c.y << 16)+", "+(y << 16));
+			return (c.x-x) + ((c.y << 16) - (y << 16));
 		}
 	}
 
 	public boolean equals(Object o) {
+		if (o == this) {
+			return true;
+		}
 		if (!(o instanceof Coord2D)) {
+			System.out.println("Wasn't instance of Coord2D");
 			return false;
 		} else {
 			Coord2D c = (Coord2D) o;
 			return c.x == x && c.y == y;
 		}
+	}
+	
+	public int hashCode() {
+		return x + (y << 16);
 	}
 }

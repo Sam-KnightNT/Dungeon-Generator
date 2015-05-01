@@ -1,6 +1,7 @@
 import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.util.*;
+import java.util.Map.Entry;
 
 import javax.swing.JFrame;
 
@@ -100,6 +101,13 @@ public class Generator {
 		window.setGraphics();
 		//printGraphicalOutput(minX, maxX, minY, maxY);
 		
+		HashMap<Coord2D, Double> tests = new HashMap<Coord2D, Double>();
+		for (int i=3; i<6; i++) {
+			for (int j=3; j<6; j++) {
+				tests.put(new Coord2D(i, j), 0.0);
+			}
+		}
+		System.out.println(tests.get(new Coord2D(3, 5))+", "+new Coord2D(3, 5).equals(new Coord2D(3, 5)));
 		//Sort the cells by x-value. Check each pair in turn. If they overlap, move the furthest one from the origin 1 square outwards.
 		//Sort the cells by y-value. Check each pair in turn. If they overlap, move the furthest one from the origin 1 square outwards.
 		//Repeat until there are no overlaps.
@@ -624,7 +632,7 @@ public class Generator {
 			closedSet.add(current);
 			window.repaintPoint(current, new Color(155, 25, 155));
 			try {
-				Thread.sleep(100);
+				Thread.sleep(75);
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();
 			}
@@ -656,17 +664,20 @@ public class Generator {
 							gScore.put(neighbour, tentativeG);
 							fScore.put(neighbour, gScore.get(neighbour) + costEstimate(neighbour, end));
 							if (!openSet.contains(neighbour)) {
+								System.out.println(String.format("%s not contained in %s", neighbour, openSet));
 								openSet.add(neighbour);
 							}
 						}
+						System.out.println(openSet.size());
 						try {
-							Thread.sleep(250);
+							Thread.sleep(100);
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						} finally {
 							window.repaintPoint(neighbour, new Color(140, 80, 0));
 						}
 					} else {
+						System.out.println("Neighbour's in closedSet.");
 						window.repaintPoint(neighbour, new Color(100, 40, 0));
 					}
 				} else {
