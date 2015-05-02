@@ -236,7 +236,7 @@ public class Cell implements Comparable<Cell> {
 	public boolean contains(Coord2D coord) {
 		int dx = coord.getX() - corner.getX();
 		int dy = coord.getY() - corner.getY();
-		return  dx >= 0 && dx <= width &&
-				dy >= 0 && dy <= height;
+		return  dx >= 0 && dx < width &&
+				dy >= 0 && dy < height;
 	}
 }

@@ -54,7 +54,7 @@ public class Generator {
 	 * After the first Throne Room, change slot 8 to have a 1/8 chance of being another Throne Room (possibly modified to be smaller), and 7/8 to be a more generic Room. If this 2nd Throne Room is genned, reduce that chance to 0.
 	 * Make sure the new Room can be placed at each stage. If not, remove it from this particular entrance's pool and try again.
 	 */
-	static final int NUM_CELLS = 4;
+	static final int NUM_CELLS = 150;
 	static final int RADIUS_LIMIT_X = 70;
 	static final int RADIUS_LIMIT_Y = 50;
 	static final int MIN_SIZE = 3;
@@ -63,7 +63,7 @@ public class Generator {
 	static final double VARIANCE = 3;
 	static final int CENTREX = 500;
 	static final int CENTREY = 375;
-	static final int SIZE_MULT = 14;
+	static final int SIZE_MULT = 6;
 	static final double TAU = Math.PI*2;
 	static Random random = new Random(3000);
 	static GameWindow window;
@@ -87,11 +87,11 @@ public class Generator {
 			cells.add(cell);	
 		}
 		
-		cells.clear();
+		/*cells.clear();
 		cells.add(new Cell(new Coord2D(-15, -12), 10, 10));
 		cells.add(new Cell(new Coord2D(15, -12), 10, 10));
 		cells.add(new Cell(new Coord2D(-15, 12), 10, 10));
-		cells.add(new Cell(new Coord2D(15, 12), 10, 10));
+		cells.add(new Cell(new Coord2D(15, 12), 10, 10));*/
 		
 		window = new GameWindow();
 		JFrame frame = new JFrame();
@@ -299,120 +299,16 @@ public class Generator {
 				cellGen = (ArrayList<Cell>) cells.clone();
 			}
 		}
-		//Draw corridors.
-		//Shuffle the thing and iterate through it, taking the first connection found.
-		//Delete the connection coming the other way, and check the direction of the cell it is connected to.
-		//Create a cell between the two, such that it extends to a random point (skewed towards the closest point to the other one, somehow) on one Cell, plus one
-		//To a random point on the other one.
-		//Draw this new Cell in green.
-		/*boolean found;
-		do {
-			found = false;
-			Collections.shuffle(cells, random);
-			search:
-			for (Cell cell : cells) {
-				if (cell.getConnectionCount()>0) {
-					found = true;
-					Cell connection = cell.getConnections().get(0);
-					System.out.println(cell.removeConnection(connection));
-					System.out.println(connection.removeConnection(cell));
-					//Now check which direction the connection is in
-					int relX = connection.getX()-cell.getX();
-					int relY = connection.getY()-cell.getY();
-					if (Math.abs(relY)>Math.abs(relX)) {
-						//Check if it's north or south
-						int minCoords =	Math.min(cell.getX(), connection.getX());
-						int maxCoords = Math.max(cell.getX()+cell.getW(), connection.getX()+connection.getW());
-						Cell corridor = null;
-						if (relY>0) {
-							//North - create a new Cell above cell.
-							int gap = relY-cell.getH();
-							if (gap<0) {
-								corridor = new Cell(new Coord2D(minCoords, cell.getCentre().getY()), Math.abs(relX), connection.getY()-cell.getCentre().getY());
-							} else {
-								corridor = new Cell(new Coord2D(minCoords, cell.getY()+cell.getH()), maxCoords-minCoords, gap);
-							}
-							
-						} else {
-							int gap = -(connection.getH()+relY);
-							corridor = new Cell(new Coord2D(minCoords, connection.getY()+connection.getH()), maxCoords-minCoords, gap);
-						}
-						corridor.addConnection(cell);
-						corridor.addConnection(connection);
-						System.out.println("Creating corridor at "+corridor.toStringShort());
-						window.repaintCell(corridor, Color.GREEN);
-						//Check if this overlaps anything at all.
-						for (Cell cellC : cells) {
-							if (corridor.strictlyOverlaps(cellC)) {
-								System.out.println("Corridor "+corridor.toStringShort()+" overlaps cell "+cellC.toStringShort()+", "+corridor.overlaps(cellC));
-								if (corridor.isRightOf(cellC)) {
-									//If the right side of the cell is to the left of the right of the parent cell, it's possible to truncate the left of the corridor.
-									if (cellC.getX()+cellC.getW()+2<cell.getX()+cell.getW()) {
-										//Then truncate the left of the corridor.
-									} else {
-										//We have a problem. No idea what to do here? Maybe add an Entrance to the obstructing Room, then add another Corridor linking that one and the 2nd Room.
-									}
-								} else {
-									//Otherwise it is to the left. So, do the opposite!
-								}
-							}
-						}
-						for (Cell cellC : corridors) {
-							if (corridor.strictlyOverlaps(cellC)) {
-								System.out.println("Corridor "+corridor.toStringShort()+" overlaps corridor "+cellC.toStringShort()+", "+corridor.overlaps(cellC));
-							}
-						}
-						//And draw the cell.
-						corridors.add(corridor);
-						break search;
-					}
-					try {
-						Thread.sleep(250);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			}
-		} while (found);*/
-		
-		
-		//Another method of corridor drawing - use the A* algorithm.
-		//Start at a random point on the 1st cell, which is skewed towards the 2nd. For example, if the 2nd is 9 above and 2 to the left, it is far more likely to pick ones on the top, and a bit more to pick left ones.
-		//Do the same with the other one.
-		//Then, perform A* until you hit the other point.
-		//First, expand the view to see what's going on.
+		//Draw corridors using the A* algorithm.
+		//Work out the start point by finding which point intersects the line drawn. Do the same with the end point.
+		//Then, perform A* to connect the 2.
 
 		System.out.println("Beginning A* search.");
-		//closed_set should consist of only the cells that are diagonally in between the randomly-generated start and end points.
 		for (Connection connection : connections) {
-			//Create a random start and end point for the A* algorithm, and run it.
 			Cell A = connection.getCellA();
 			Cell B = connection.getCellB();
-			//Check what side cell B is on, then generate a random number that is most likely to be on the correct side.
-			//Only possible to generate the entrance on a given side, if that side is facing at least part of the other cell.
 			
-			//The probability of this being used is proportional to the "facingness" of the cells. So, work out the angle between them.
-
-			/*Coord2D A1 = A.getCorner();
-			Coord2D A2 = A.getLowerLeftCorner();
-			Coord2D A3 = A.getLowerRightCorner();
-			Coord2D A4 = A.getUpperRightCorner();
-			
-			Coord2D B1 = B.getCorner();
-			Coord2D B2 = B.getLowerLeftCorner();
-			Coord2D B3 = B.getLowerRightCorner();
-			Coord2D B4 = B.getUpperRightCorner();
-			for (int i=1; i<A.getW()-1; i++) {
-				//Get the angle the top and bottom cells make with the 4 corners of the other cell.
-				//Need to work out the angle that all 4 sides make with the other cell.
-				//For each grid cell on the 4 walls of the cell, work out how much of the other cell they can see.
-				//Find the angles between the 4 corners. Clamp them to values depending on the wall. Then take the difference between the minimum and maximum. That's the probability this one is going to be used.
-				
-			}*/
-			
-			//OH MY GOD FUCK ALL THAT
-			//Just work out the angle, and which points intersect that line in each cell. Set those as the start/end points.
+			//Work out the angle, and which points intersect that line in each cell. Set those as the start/end points.
 			double angle = (A.angleWith(B));
 			
 			double m = Math.tan(angle);
@@ -421,6 +317,10 @@ public class Generator {
 			int w = A.getW();
 			
 			Coord2D start = null;
+
+			//Check if the width/height are even - if so, some distances will need to be adjusted by 1.
+			boolean hEven = h % 2 == 0;
+			boolean wEven = w % 2 == 0;
 			
 			//Need 4 angles, that represent the angle made by the 4 corners.
 			//Angles that are between these 4 indicate which side is intersected first.
@@ -429,22 +329,24 @@ public class Generator {
 			double ang3 = ang1+Math.PI;
 			double ang4 = ang2+Math.PI;
 			
+			//Distance is measured from the centre, so half each value.
 			h /= 2;
 			w /= 2;
+			
 			//Now, get which side it intersects. We need to check for each quadrant.
 			if (angle >= ang1 && angle < ang2) {
 				//In this case, it will intersect the bottom side. We know y in this case, it's h. I know it seems upside-down, but it works.
 				//If the height is even, it needs to be shifted one up.
-				start = new Coord2D(h/m, h);
+				start = new Coord2D(h/m, (hEven ? h-1 : h));
 			} else if (angle >= ang2 && angle < ang3) {
 				//Intersects left line. x = -w.
 				start = new Coord2D(-w, -m*w);
 			} else if (angle >= ang3 && angle < ang4) {
-				//Intersects bottom line. y = -h.
+				//Intersects top line. y = -h.
 				start = new Coord2D(-h/m, -h);
 			} else {
 				//Intersects right line. x = w.
-				start = new Coord2D(w, m*w);
+				start = new Coord2D((wEven ? w-1 : w), m*w);
 			}
 			
 			//If it's on a corner, just shove it 1 space up/down.
@@ -461,6 +363,9 @@ public class Generator {
 			h = B.getH();
 			w = B.getW();
 			
+			hEven = h % 2 == 0;
+			wEven = w % 2 == 0;
+			
 			Coord2D end = null;
 			
 			//Need 4 angles, that represent the angle made by the 4 corners.
@@ -475,16 +380,16 @@ public class Generator {
 			//Now, get which side it intersects. We need to check for each quadrant.
 			if (angle >= ang1 && angle < ang2) {
 				//Intersects bottom line. y = h.
-				end = new Coord2D(h/m, h);
+				end = new Coord2D(h/m, (hEven ? h-1 : h));
 			} else if (angle >= ang2 && angle < ang3) {
 				//Intersects left line. x = -w.
 				end = new Coord2D(-w, -m*w);
 			} else if (angle >= ang3 && angle < ang4) {
-				//Intersects top line. y = -h.
+				//Intersects bottom line. y = -h.
 				end = new Coord2D(-h/m, -h);
 			} else {
 				//Intersects right line. x = w.
-				end = new Coord2D(w, m*w);
+				end = new Coord2D((wEven ? w-1 : w), m*w);
 			}
 
 			System.out.println(Coord2D.difference(B.getCentre(), B.getCorner()));
@@ -566,44 +471,13 @@ public class Generator {
 	}
 	
 	private static ArrayList<Coord2D> A_Star(Coord2D start, Coord2D end) {
-		//Naive for now, ignore other cells.
-		/* A* Algorithm pseudocode
-		 * function A*(start,goal)
-		 * 		closedset := the empty set    // The set of nodes already evaluated.
-		 * 		openset := {start}    // The set of tentative nodes to be evaluated, initially containing the start node
-		 * 		came_from := the empty map    // The map of navigated nodes.
-		 * 		
-		 * 		g_score[start] := 0    // Cost from start along best known path.
-		 * 		// Estimated total cost from start to goal through y.
-		 * 		f_score[start] := g_score[start] + heuristic_cost_estimate(start, goal)
-		 * 		while openset is not empty
-		 * 			current := the node in openset having the lowest f_score[] value
-		 * 			if current = goal
-		 * 				return reconstruct_path(came_from, goal)
-		 * 			remove current from openset
-		 * 			add current to closedset
-		 * 			for each neighbor in neighbor_nodes(current)
-		 * 				if neighbor in closedset
-		 * 					continue
-		 * 				tentative_g_score := g_score[current] + dist_between(current,neighbor)
-		 * 				
-		 * 				if neighbor not in openset or tentative_g_score < g_score[neighbor]
-		 * 					came_from[neighbor] := current
-		 * 					g_score[neighbor] := tentative_g_score
-		 * 					f_score[neighbor] := g_score[neighbor] + heuristic_cost_estimate(neighbor, goal)
-		 * 					if neighbor not in openset
-		 * 						add neighbor to openset
-		 * 
-		 *		return failure
-		 * 
-		 * function reconstruct_path(came_from,current)
-		 * 		total_path := [current]
-		 * 		while current in came_from:
-		 * 			current := came_from[current]
-		 * 			total_path.append(current)
-		 * 		return total_path
-		 */
 		
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
 		ArrayList<Coord2D> closedSet = new ArrayList<Coord2D>();
 		ArrayList<Coord2D> openSet = new ArrayList<Coord2D>();
 		openSet.add(start);
@@ -625,19 +499,19 @@ public class Generator {
 		cameFrom.put(start, new Coord2D(0, 0));
 		while (!openSet.isEmpty()) {
 			current = getLowestOf(openSet, fScore);
-			if (current==end) {
+			if (current.equals(end)) {
 				return reconstructPath(cameFrom, end);
 			}
 			openSet.remove(current);
 			closedSet.add(current);
 			window.repaintPoint(current, new Color(155, 25, 155));
 			try {
-				Thread.sleep(75);
+				Thread.sleep(50);
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();
 			}
 			for (Coord2D neighbour : current.getOrthogonalNeighbours()) {
-				if (!containedInCells(neighbour)) {
+				if (!containedInCells(neighbour) || neighbour.equals(end)) {
 					if (!closedSet.contains(neighbour)) {
 						window.repaintPoint(neighbour, new Color(180, 120, 40));
 						//neighbour "came from" current
@@ -646,41 +520,29 @@ public class Generator {
 						//If the path has not made a turn (i.e. if current-cameFrom(current) = neighbour-current), score is 1, otherwise 1.25.
 						double tentativeG = gScore.get(current) +
 								(Coord2D.difference(current, cameFrom.get(current)).equals(Coord2D.difference(neighbour, current)) ? 1 : 1.25);
-
-						try {
-							openSet.contains(neighbour);
-						} catch (NullPointerException e) {
-							System.out.println("OpenSet crashed!");
-							e.printStackTrace();
-						}
-						try {
-							gScore.get(neighbour);
-						} catch (NullPointerException e) {
-							System.out.println("gScore crashed!");
-							e.printStackTrace();
-						}
+						
 						if (!openSet.contains(neighbour) || tentativeG < gScore.get(neighbour)) {
 							cameFrom.put(neighbour, current);
 							gScore.put(neighbour, tentativeG);
 							fScore.put(neighbour, gScore.get(neighbour) + costEstimate(neighbour, end));
 							if (!openSet.contains(neighbour)) {
-								System.out.println(String.format("%s not contained in %s", neighbour, openSet));
 								openSet.add(neighbour);
 							}
 						}
-						System.out.println(openSet.size());
+						
 						try {
-							Thread.sleep(100);
+							Thread.sleep(85);
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						} finally {
 							window.repaintPoint(neighbour, new Color(140, 80, 0));
 						}
 					} else {
-						System.out.println("Neighbour's in closedSet.");
+						//If the neighbour is in closedSet
 						window.repaintPoint(neighbour, new Color(100, 40, 0));
 					}
 				} else {
+					//If neighbour is contained in a cell
 					window.repaintPoint(neighbour, new Color(200, 10, 10));
 				}
 			}
