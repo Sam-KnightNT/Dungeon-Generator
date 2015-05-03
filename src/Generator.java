@@ -413,6 +413,11 @@ public class Generator {
 				corridors.put(coord, new Pair<Cell>(A, B));
 				window.repaintPoint(coord, new Color(25, 180, 55));
 			}
+			
+			//Naively generate the corridors. Take the first point in the corridor. Now, while the next points are connected, go through them.
+			//Check if the next point would expand the square surrounding them. If so, check if the expanded square would collide (strictly) with a Cell.
+			//If so, create a new Corridor and continue. If not, expand the width or height if they move out 1 and continue.
+			//If the next point wouldn't expand the square just carve it out.
 		}
 	}
 	
