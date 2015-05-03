@@ -410,7 +410,6 @@ public class Generator {
 			//Or, just have an ever-expanding list of points that containedInCells calls, that includes all points in Cells, and all points in Corridors. Points in Corridors should have a HashMap entry or something, telling it where they go. If current is at one of them, join them up.
 			//Then at the end, carve those points out in the Cells and Corridors generated alongside them.
 			for (Coord2D coord : path) {
-				System.out.println(coord);
 				corridors.put(coord, new Pair<Cell>(A, B));
 				window.repaintPoint(coord, new Color(25, 180, 55));
 			}
