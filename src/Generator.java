@@ -69,7 +69,7 @@ public class Generator {
 	static GameWindow window;
 	
 	static ArrayList<Cell> cells = new ArrayList<Cell>();
-	static ArrayList<Cell> corridors = new ArrayList<Cell>();
+	static HashMap<Coord2D, Pair<Cell>> corridors = new HashMap<Coord2D, Pair<Cell>>();
 	static ArrayList<Connection> connections = new ArrayList<Connection>();
 	
 	public static void main(String[] args) {
@@ -292,8 +292,8 @@ public class Generator {
 				//And draw the line.
 				System.out.println("Connecting closest cells in disjoint loops. Cells are "+closestCellA.getCentre()+" and "+closestCellB.getCentre());
 				window.getGraphics().setColor(Color.WHITE);
-				window.getGraphics().drawLine(CENTREX+(closestCellA.getCentre().getX()*5), CENTREY+(closestCellA.getCentre().getY()*5),
-						CENTREX+(closestCellB.getCentre().getX()*5), CENTREY+(closestCellB.getCentre().getY()*5));
+				window.getGraphics().drawLine(CENTREX+(closestCellA.getCentre().getX()*SIZE_MULT), CENTREY+(closestCellA.getCentre().getY()*SIZE_MULT),
+						CENTREX+(closestCellB.getCentre().getX()*SIZE_MULT), CENTREY+(closestCellB.getCentre().getY()*SIZE_MULT));
 
 				//Finally, restart cellGen so that it tries again.
 				cellGen = (ArrayList<Cell>) cells.clone();
@@ -402,10 +402,16 @@ public class Generator {
 			
 			System.out.println();
 
-			ArrayList<Coord2D> path = A_Star(Coord2D.sum(A.getCentre(), start), Coord2D.sum(B.getCentre(), end));
+			ArrayList<Coord2D> path = A_Star(Coord2D.sum(A.getCentre(), start), Coord2D.sum(B.getCentre(), end), B);
 			
+			//Once this has done, create a new Corridor that gets the path carved.
+			//Need to have more of a check for Corridors - if the Corridor hit is heading to the same Cell the path is going to, connect to it.
+			//For the purposes of this, the Corridors are a special type of Cell, which are nothing but the lines.
+			//Or, just have an ever-expanding list of points that containedInCells calls, that includes all points in Cells, and all points in Corridors. Points in Corridors should have a HashMap entry or something, telling it where they go. If current is at one of them, join them up.
+			//Then at the end, carve those points out in the Cells and Corridors generated alongside them.
 			for (Coord2D coord : path) {
 				System.out.println(coord);
+				corridors.put(coord, new Pair<Cell>(A, B));
 				window.repaintPoint(coord, new Color(25, 180, 55));
 			}
 		}
@@ -470,7 +476,7 @@ public class Generator {
 		return true;
 	}
 	
-	private static ArrayList<Coord2D> A_Star(Coord2D start, Coord2D end) {
+	private static ArrayList<Coord2D> A_Star(Coord2D start, Coord2D end, Cell endCell) {
 		
 		try {
 			Thread.sleep(500);
@@ -501,19 +507,14 @@ public class Generator {
 			current = getLowestOf(openSet, fScore);
 			if (current.equals(end)) {
 				return reconstructPath(cameFrom, end);
+			} else if (corridorHeadingTo(current, endCell)) {
+				return reconstructPath(cameFrom, current);
 			}
 			openSet.remove(current);
 			closedSet.add(current);
-			window.repaintPoint(current, new Color(155, 25, 155));
-			try {
-				Thread.sleep(50);
-			} catch (InterruptedException e1) {
-				e1.printStackTrace();
-			}
 			for (Coord2D neighbour : current.getOrthogonalNeighbours()) {
 				if (!containedInCells(neighbour) || neighbour.equals(end)) {
 					if (!closedSet.contains(neighbour)) {
-						window.repaintPoint(neighbour, new Color(180, 120, 40));
 						//neighbour "came from" current
 						cameFrom.put(neighbour, current);
 					
@@ -529,24 +530,9 @@ public class Generator {
 								openSet.add(neighbour);
 							}
 						}
-						
-						try {
-							Thread.sleep(85);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						} finally {
-							window.repaintPoint(neighbour, new Color(140, 80, 0));
-						}
-					} else {
-						//If the neighbour is in closedSet
-						window.repaintPoint(neighbour, new Color(100, 40, 0));
 					}
-				} else {
-					//If neighbour is contained in a cell
-					window.repaintPoint(neighbour, new Color(200, 10, 10));
 				}
 			}
-			window.repaintPoint(current, new Color(140, 80, 0));
 		}
 		//If it gets here, it has failed.
 		System.out.println("Failure.");
@@ -561,6 +547,10 @@ public class Generator {
 			totalPath.add(current);
 		}
 		return totalPath;
+	}
+	
+	private static boolean corridorHeadingTo(Coord2D point, Cell headingTo) {
+		return (corridors.containsKey(point) && corridors.get(point).contains(headingTo));
 	}
 	
 	private static int costEstimate(Coord2D node, Coord2D goal) {
